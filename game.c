@@ -12,7 +12,7 @@ static void GameRun(GameState* gs) {
         if (platform.key_pressed[GLFW_KEY_ESCAPE])
             game_running = false;
         
-        MapUpdate();
+        MapUpdate(&gs->map, dt);
         EntityUpdate();
         CameraUpdate(&gs->cam, dt);
         
@@ -35,7 +35,7 @@ static void GameRun(GameState* gs) {
             glLoadIdentity();
         }
 
-        MapRender();
+        MapRender(&gs->map);
         EntityRender();
 
         PlatformUpdate();
