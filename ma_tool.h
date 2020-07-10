@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <stdint.h>
 #include <math.h>
+#include <stdio.h>
 
 typedef float   f32;
 typedef double  f64;

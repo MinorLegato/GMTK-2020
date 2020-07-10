@@ -1,18 +1,19 @@
 
-static void GameRun(GameState* gs) {
-    b32 game_running = true;
-    
+static void GameInit(GameState* gs) {
     gs->cam = (Camera) {
         .target =  (v3) { 0.0f, 0.0f, 16.0f }
     };
     
-    Particle p;
-    p.pos  = (v2) { 0.0f, 0.0f };
-    p.vel  = (v2) { 0.0f, 0.0f };
-    p.col  = (v4) { 255, 255, 255, 255 };
-    p.life = 100.0f;
+    AddEntity(&gs->em, &(Entity) {
+                  .type   = ENTITY_PLAYER,
+                  .rad    = 0.5f,
+              });
+}
+
+static void GameRun(GameState* gs) {
+    b32 game_running = true;
     
-    ParticleAdd(&gs->particle_system, &p);
+    GameInit(gs);
     
     while (game_running) {
         f32 dt = platform.time_delta;
@@ -21,8 +22,11 @@ static void GameRun(GameState* gs) {
             game_running = false;
         
         MapUpdate(&gs->map, dt);
-        EntityUpdate();
+        
+        UpdateEntities(&gs->em, dt);
         ParticlesUpdate(&gs->particle_system, dt);
+        CameraUpdate(&gs->cam, dt);
+        
         CameraUpdate(&gs->cam, dt);
         
         glClear(GL_COLOR_BUFFER_BIT);
@@ -45,7 +49,8 @@ static void GameRun(GameState* gs) {
         }
         
         MapRender(&gs->map);
-        EntityRender();
+        RenderEntities(&gs->em);
+        
         ParticlesRender(&gs->particle_system);
         
         PlatformUpdate();
