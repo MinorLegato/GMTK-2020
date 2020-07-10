@@ -1,10 +1,12 @@
 #include "ma_tool.h"
 
+#include "camera.h"
 #include "map.h" 
 #include "entity.h"
 #include "particle.h"
 #include "game.h"
 
+#include "camera.c"
 #include "map.c"
 #include "entity.c"
 #include "particle.c"

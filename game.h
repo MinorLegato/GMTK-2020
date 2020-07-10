@@ -1,5 +1,5 @@
 
 typedef struct GameState {
-    // game shit:
+    Camera      cam;
 } GameState;
 
