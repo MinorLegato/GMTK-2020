@@ -29,6 +29,10 @@ typedef unsigned long long  b64;
 #define true   (!false)
 #endif
 
+#ifndef PI
+#define PI  (3.14159265359f)
+#endif
+
 #define ARRAY_COUNT(array) (sizeof (array) / sizeof (array[0]))
 
 typedef union v2 {
@@ -117,6 +121,85 @@ typedef union m4 {
 
 static f32 rsqrtf(f32 n) {
     return n == 0.0f? 0.0f : 1.0f / sqrtf(n);
+}
+
+static f32 fLerp(f32 a, f32 b, f32 t) {
+    return a + t * (b - a);
+}
+
+static f32 fUnLerp(f32 a, f32 b, f32 t) {
+    return (t - a) / (b - a);
+}
+
+static f32 fSmoothStep(f32 n) {
+	if (n < 0.0f) { return 0.0f; }
+	if (n < 1.0f) { return (3.0f * n * n - 2.0f * n * n * n); }
+
+	return 1.0f;
+}
+
+static f32 fShortAngleDist(f32 a, f32 b) {
+    f32 max = 2.0f * PI;
+    f32 da  = fmodf(b - a, max);
+    return fmodf(2.0f * da, max) - da;
+}
+
+static f32 fLerpAngle(f32 a, f32 b, f32 t) {
+    return a + fShortAngleDist(a, b) * t;
+}
+
+static f32 fSnap(f32 f, f32 step_size) {
+	if (f > 0)  { return (f32)((int)(f / step_size + 0.5f)) * step_size; }
+    else        { return (f32)((int)(f / step_size - 0.5f)) * step_size; }
+}
+
+static f32 fSpline(f32 f, f32 a, f32 b, f32 c, f32 d) {
+	f32 i = 1.0f - f;
+	return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
+}
+
+static f32 fMin(f32 a, f32 b) {
+    return a < b? a : b;
+}
+
+static f32 fMax(f32 a, f32 b) {
+    return a < b? b : a;
+}
+
+static int iMin(int a, int b) {
+    return a < b? a : b;
+}
+
+static int iMax(int a, int b) {
+    return a < b? b : a;
+}
+
+static f32 fClamp(f32 n, f32 min, f32 max) {
+    if (n < min) return min;
+    if (n > max) return max;
+    return n;
+}
+
+static f32 fClampMin(f32 n, f32 min) {
+    return n < min? min : n;
+}
+
+static f32 fClampMax(f32 n, f32 max) {
+    return n > max? max : n;
+}
+
+static int iClamp(int n, int min, int max) {
+    if (n < min) return min;
+    if (n > max) return max;
+    return n;
+}
+
+static int iClampMin(int n, int min) {
+    return n < min? min : n;
+}
+
+static int iClampMax(int n, int max) {
+    return n > max? max : n;
 }
 
 // v2:
@@ -809,6 +892,124 @@ static m4 m4_LookAt(v3 eye, v3 center, v3 up) {
     M.array[15] = -(M.array[3] * eye.x + M.array[7] * eye.y + M.array[11] * eye.z - 1.0f);
 
     return M;
+}
+
+// ============================================== RANDOM GENERATOR =========================================== //
+// random number generator: xorshf96
+
+typedef struct RndGen {
+    u32    x;
+    u32    y;
+    u32    z;
+} RndGen;
+
+static RndGen default_rnd_gen = { 123456789u, 362436069u, 521288629u };
+
+static u32 RndGenNext(RndGen* g) {
+    g->x  ^= g->x << 16;
+    g->x  ^= g->x >> 5;
+    g->x  ^= g->x << 1;
+
+    u32 t = g->x;
+
+    g->x  = g->y;
+    g->y  = g->z;
+    g->z  = t ^ g->x ^ g->y;
+
+    return g->z;
+}
+
+static int iRand(int min, int max) {
+    return min + RndGenNext(&default_rnd_gen) % (max - min);
+}
+
+static f32 fRand(f32 min, f32 max) {
+    return min + ((f32)RndGenNext(&default_rnd_gen) / (f32)0xFFFFFFFF) * (max - min); 
+}
+
+static void f2_Rand(f32 *out, f32 min, f32 max) {
+    out[0] = fRand(-1.0f, 1.0f);
+    out[1] = fRand(-1.0f, 1.0f);
+
+    f32 k = rsqrtf(out[0] * out[0] + out[1] * out[1]) * fRand(min, max);
+
+    out[0] *= k;
+    out[1] *= k;
+}
+
+static void f2_RandUnit(f32 *out) {
+    out[0] = fRand(-1.0f, 1.0f);
+    out[1] = fRand(-1.0f, 1.0f);
+
+    f32 k = rsqrtf(out[0] * out[0] + out[1] * out[1]);
+
+    out[0] *= k;
+    out[1] *= k;
+}
+
+static void f3_Rand(f32 *out, f32 min, f32 max) {
+    out[0] = fRand(-1.0f, 1.0f);
+    out[1] = fRand(-1.0f, 1.0f);
+    out[2] = fRand(-1.0f, 1.0f);
+
+    f32 k = rsqrtf(out[0] * out[0] + out[1] * out[1] + out[2] * out[2]) * fRand(min, max);
+
+    out[0] *= k;
+    out[1] *= k;
+    out[2] *= k;
+}
+
+static void f3_RandUnit(f32 *out) {
+    out[0] = fRand(-1.0f, 1.0f);
+    out[1] = fRand(-1.0f, 1.0f);
+    out[2] = fRand(-1.0f, 1.0f);
+
+    f32 k = rsqrtf(out[0] * out[0] + out[1] * out[1] + out[2] * out[2]);
+
+    out[0] *= k;
+    out[1] *= k;
+    out[2] *= k;
+}
+
+static void f2_AddRand(f32 *out, f32* u, f32 min, f32 max) {
+    f32 r[2];
+    f2_Rand(r, min, max);
+
+    out[0] = u[0] + r[0];
+    out[1] = u[1] + r[1];
+}
+
+static void f3_AddRand(f32 *out, f32* u, f32 min, f32 max) {
+    f32 r[3];
+    f3_Rand(r, min, max);
+
+    out[0] = u[0] + r[0];
+    out[1] = u[1] + r[1];
+    out[2] = u[2] + r[2];
+}
+
+static v2 v2_Rand(f32 min, f32 max) {
+    v2 out;
+    f2_Rand(out.array, min, max);
+    return out;
+}
+
+static v2 v2_RandUnit(void) {
+    v2 out;
+    f2_RandUnit(out.array);
+    return out;
+}
+
+static v3 v3_Rand(f32 min, f32 max) {
+    v3 out;
+    f3_Rand(out.array, min, max);
+    return out;
+}
+
+static v3 v3_RandUnit(void) {
+    v3 out;
+    f3_RandUnit(out.array);
+    return out;
 }
 
 // ================================================== PLATFORM ========================================== //
