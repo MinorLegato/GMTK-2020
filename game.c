@@ -1,10 +1,19 @@
 
-static void GameRun(GameState* gs) {
-    b32 game_running = true;
-
+static void GameInit(GameState* gs) {
     gs->cam = (Camera) {
         .target =  (v3) { 0.0f, 0.0f, 16.0f }
     };
+
+    AddEntity(&gs->em, &(Entity) {
+        .type   = ENTITY_PLAYER,
+        .rad    = 0.5f,
+    });
+}
+
+static void GameRun(GameState* gs) {
+    b32 game_running = true;
+
+    GameInit(gs);
 
     while (game_running) {
         f32 dt = platform.time_delta;
@@ -13,9 +22,11 @@ static void GameRun(GameState* gs) {
             game_running = false;
         
         MapUpdate(&gs->map, dt);
-        EntityUpdate();
-        CameraUpdate(&gs->cam, dt);
+
+        UpdateEntities(&gs->em, dt);
         
+        CameraUpdate(&gs->cam, dt);
+
         glClear(GL_COLOR_BUFFER_BIT);
         
         // camera:
@@ -36,7 +47,7 @@ static void GameRun(GameState* gs) {
         }
 
         MapRender(&gs->map);
-        EntityRender();
+        RenderEntities(&gs->em);
 
         PlatformUpdate();
     }
