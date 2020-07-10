@@ -1,5 +1,15 @@
 #include "ma_tool.h"
 
+#include "map.h" 
+#include "entity.h"
+#include "particle.h"
+#include "game.h"
+
+#include "map.c"
+#include "entity.c"
+#include "particle.c"
+#include "game.c"
+
 int main(void) {
     PlatformInit("GMTK", 1200, 800);
 

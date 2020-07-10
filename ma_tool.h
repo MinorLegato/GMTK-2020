@@ -115,4 +115,3 @@ void PlatformUpdate(void) {
     glfwSwapBuffers(platform.window);
     glfwPollEvents();
 }
-
