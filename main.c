@@ -1,7 +1,7 @@
 #include "ma_tool.h"
 
 #include "camera.h"
-#include "map.h" 
+#include "map.h"
 #include "entity.h"
 #include "particle.h"
 #include "game.h"
@@ -19,7 +19,7 @@ static void RenderMainMenu() {
 
 int main(void) {
     PlatformInit("GMTK", 1200, 800);
-
+    
     GameState* gs = calloc(1, sizeof (GameState));
     
     while (!platform.close) {
@@ -30,7 +30,7 @@ int main(void) {
             platform.close = true;
         
         RenderMainMenu();
-
+        
         glClear(GL_COLOR_BUFFER_BIT);
         
         PlatformUpdate();

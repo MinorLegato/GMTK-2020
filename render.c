@@ -9,3 +9,10 @@ static void RenderRect(v2 pos, v2 size, v4 col) {
     glVertex2f(pos.x - size.x, pos.y + size.y);
     glEnd();
 }
+
+static void RenderParticle(v2 pos, v4 col) {
+    glColor4ub(col.r, col.g, col.b, col.a);
+    glBegin(GL_POINT);
+    glVertex2f(pos.x, pos.y);
+    glEnd();
+}
