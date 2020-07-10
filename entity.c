@@ -2,10 +2,10 @@
 // entity stuff
 
 
-static void entity_render() {
+static void EntityRender() {
     //render stuff
 }
 
-static void entity_update() {
+static void EntityUpdate() {
     //update stuff
 }

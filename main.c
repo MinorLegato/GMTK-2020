@@ -5,10 +5,15 @@
 #include "particle.h"
 #include "game.h"
 
+#include "render.c"
 #include "map.c"
 #include "entity.c"
 #include "particle.c"
 #include "game.c"
+
+static void RenderMainMenu() {
+    RenderRect((v2) { 0.0f, 0.0f }, (v2) { 1.0f, 1.0f }, (v4) { 255, 0, 0, 255 });
+}
 
 int main(void) {
     PlatformInit("GMTK", 1200, 800);
@@ -20,6 +25,7 @@ int main(void) {
         if (platform.key_pressed[GLFW_KEY_ESCAPE])
             platform.close = true;
         
+        RenderMainMenu();
         glClear(GL_COLOR_BUFFER_BIT);
         
         PlatformUpdate();
