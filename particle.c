@@ -23,6 +23,6 @@ static void ParticlesUpdate(ParticleSystem* ps, f32 t) {
 static void ParticlesRender(ParticleSystem* ps) {
     for(int i = 0; i < ps->count; i++) {
         Particle* p = &ps->particles[i];
-        RenderParticle(p->pos, p->col);
+        RenderRect(p->pos, p->size, p->col);
     }
 }

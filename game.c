@@ -15,6 +15,15 @@ static void GameRun(GameState* gs) {
     
     GameInit(gs);
     
+    Particle p;
+    p.pos  = (v2) { 0.0f, 0.0f };
+    p.vel  = (v2) { 0.0f, 0.0f };
+    p.col  = (v4) { 255, 255, 255, 255 };
+    p.size = (v2) { 0.1f, 0.1f };
+    p.life = 100.0f;
+    
+    ParticleAdd(&gs->particle_system, &p);
+    
     while (game_running) {
         f32 dt = platform.time_delta;
         

@@ -3,6 +3,7 @@
 
 typedef struct Particle {
     v2  pos;
+    v2  size;
     v2  vel;
     v4  col;
     f32 life;
