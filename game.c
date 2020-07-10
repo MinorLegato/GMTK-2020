@@ -9,11 +9,11 @@ static void gameRun() {
         if (platform.key_pressed[GLFW_KEY_ESCAPE])
             game_running = false;
         
-        map_update();
-        entity_update();
+        MapUpdate();
+        EntityUpdate();
         
-        map_render();
-        entity_render();
+        MapRender();
+        EntityRender();
         
         
         glClear(GL_COLOR_BUFFER_BIT);
