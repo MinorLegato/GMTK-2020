@@ -1,6 +1,7 @@
 #include <GL/glu.h>
 #include <GLFW/glfw3.h>
 #include <stdint.h>
+#include <math.h>
 
 typedef float   f32;
 typedef double  f64;
@@ -29,6 +30,788 @@ typedef unsigned long long  b64;
 #endif
 
 #define ARRAY_COUNT(array) (sizeof (array) / sizeof (array[0]))
+
+typedef union v2 {
+    struct {
+        f32     x;
+        f32     y;
+    };
+
+    f32 array[2];
+} v2;
+
+typedef union v3 {
+    struct {
+        f32     x;
+        f32     y;
+        f32     z;
+    };
+
+    struct {
+        v2      xy;
+        f32     _z;
+    };
+
+    struct {
+        f32     r;
+        f32     g;
+        f32     b;
+    };
+
+    f32 array[3];
+} v3;
+
+typedef union v4 {
+    struct {
+        f32     x;
+        f32     y;
+        f32     z;
+        f32     w;
+    };
+
+    struct {
+        f32     r;
+        f32     g;
+        f32     b;
+        f32     a;
+    };
+
+    struct {
+        v3      rgb;
+        f32     _a;
+    };
+
+    f32 array[4];
+} v4;
+
+
+typedef union m2 {
+    struct {
+        v2  x;
+        v2  y;
+    };
+
+    f32 array[4];
+} m2;
+
+typedef union m3 {
+    struct {
+        v3  x;
+        v3  y;
+        v3  z;
+    };
+
+    f32 array[9];
+} m3;
+
+typedef union m4 {
+    struct {
+        v4  x;
+        v4  y;
+        v4  z;
+        v4  w;
+    };
+
+    f32 array[16];
+} m4;
+
+static f32 rsqrtf(f32 n) {
+    return n == 0.0f? 0.0f : 1.0f / sqrtf(n);
+}
+
+// v2:
+static v2 v2_Neg(v2 a) {
+    v2 out = { -a.x, -a.y };
+    return out;
+}
+
+static v2 v2_Add(v2 a, v2 b) {
+    v2 out = { a.x + b.x, a.y + b.y };
+    return out;
+}
+
+static v2 v2_Sub(v2 a, v2 b) {
+    v2 out = { a.x - b.x, a.y - b.y };
+    return out;
+}
+
+static v2 v2_Mul(v2 a, v2 b) {
+    v2 out = { a.x * b.x, a.y * b.y };
+    return out;
+}
+
+static v2 v2_Scale(v2 a, f32 s) {
+    v2 out = { a.x * s, a.y * s };
+    return out;
+}
+
+static f32 v2_Dot(v2 a, v2 b) {
+    return a.x * b.x + a.y * b.y;
+}
+
+static f32 v2_LenSq(v2 v) {
+    return v2_Dot(v, v);
+}
+
+static f32 v2_Len(v2 v) {
+    return sqrtf(v2_Dot(v, v));
+}
+
+static f32 v2_DistSq(v2 a, v2 b) {
+    return v2_LenSq(v2_Sub(b, a));
+}
+
+static f32 v2_Dist(v2 a, v2 b) {
+    return sqrtf(v2_DistSq(a, b));
+}
+
+static v2 v2_Norm(v2 v) {
+    return v2_Scale(v, rsqrtf(v2_Dot(v, v)));
+}
+
+static v2 v2_Min(v2 a, v2 b) {
+    v2 out = {
+        (a.x < b.x? a.x : b.x),
+        (a.y < b.y? a.y : b.y)
+    };
+    return out;
+}
+
+static v2 v2Max(v2 a, v2 b) {
+    v2 out = {
+        (a.x > b.x? a.x : b.x),
+        (a.y > b.y? a.y : b.y)
+    };
+    return out;
+}
+
+static v2 v2_Lerp(v2 a, v2 b, f32 t) {
+    v2 out = {
+        a.x + t * (b.x - a.x),
+        a.y + t * (b.y - a.y)
+    };
+    return out;
+}
+
+static f32 v2_GetAngle(v2 a, v2 b) {
+    f32 det = a.x * b.y - b.x * a.y;
+    f32 dot = a.x * b.x + a.y * b.y;
+    
+    return atan2f(det, dot);
+}
+
+static v2 v2_Spline(f32 f, v2 a, v2 b, v2 c, v2 d) {
+	f32 i = 1.0f - f;
+
+    v2 out = {
+	    ((d.x * f + c.x * i) * f + (c.x * f + b.x * i) * i) * f + ((c.x * f + b.x * i) * f + (b.x * f + a.x * i) * i) * i,
+	    ((d.y * f + c.y * i) * f + (c.y * f + b.y * i) * i) * f + ((c.y * f + b.y * i) * f + (b.y * f + a.y * i) * i) * i,
+    };
+
+    return out;
+}
+
+static int v2_CircleIntersect(v2 p0, f32 r0, v2 p1, f32 r1) {
+    f32 dx = p1.x - p0.x;
+    f32 dy = p1.y - p0.y;
+
+    f32 r = r0 + r1;
+
+    return (dx * dx + dy * dy) < (r * r);
+}
+
+static int v2_SegmentIsIntersectingCircle(v2 start, v2 end, v2 pos, f32 rad) {
+    v2 a = { start.x - pos.x, start.y - pos.y };
+    v2 b = { end.x - start.x, end.y - start.y };
+
+    if ((a.x * a.x + a.y * a.y) > (b.x * b.x + b.y * b.y))
+        return 0;
+
+    v2 seg = { end.x - start.x, end.y - start.y };
+    v2 cir = { pos.x - start.x, pos.y - start.y };
+
+    f32 dot_sc = seg.x * cir.x + seg.y * cir.y;
+
+    if (dot_sc < 0.0f)
+        return 0;
+
+    f32 proj = dot_sc / (seg.x * seg.x + seg.y * seg.y);
+
+    seg.x *= proj;
+    seg.y *= proj;
+
+    seg.x = seg.x - cir.x;
+    seg.y = seg.y - cir.y;
+
+    return (seg.x * seg.x + seg.y * seg.y) < (rad * rad);
+}
+
+// v3:
+static v3 v3_Neg(v3 a) {
+    v3 out = { -a.x, -a.y, -a.z };
+    return out;
+}
+
+static v3 v3_Add(v3 a, v3 b) {
+    v3 out = { a.x + b.x, a.y + b.y, a.z + b.z };
+    return out;
+}
+
+static v3 v3_Sub(v3 a, v3 b) {
+    v3 out = { a.x - b.x, a.y - b.y, a.z - b.z };
+    return out;
+}
+
+static v3 v3_Mul(v3 a, v3 b) {
+    v3 out = { a.x * b.x, a.y * b.y, a.z * b.z };
+    return out;
+}
+
+static v3 v3_Scale(v3 a, f32 s) {
+    v3 out = { a.x * s, a.y * s, a.z * s };
+    return out;
+}
+
+static f32 v3_Dot(v3 a, v3 b) {
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+static f32 v3_LenSq(v3 v) {
+    return v3_Dot(v, v);
+}
+
+static f32 v3_Len(v3 v) {
+    return sqrtf(v3_Dot(v, v));
+}
+
+static f32 v3_DistSq(v3 a, v3 b) {
+    return v3_LenSq(v3_Sub(b, a));
+}
+
+static f32 v3_Dist(v3 a, v3 b) {
+    return sqrtf(v3_DistSq(a, b));
+}
+
+static v3 v3_Norm(v3 v) {
+    return v3_Scale(v, rsqrtf(v3_Dot(v, v)));
+}
+
+static v3 v3_Min(v3 a, v3 b) {
+    v3 out = {
+        (a.x < b.x? a.x : b.x),
+        (a.y < b.y? a.y : b.y),
+        (a.z < b.z? a.z : b.z)
+    };
+    return out;
+}
+
+static v3 v3_Max(v3 a, v3 b) {
+    v3 out = {
+        (a.x > b.x? a.x : b.x),
+        (a.y > b.y? a.y : b.y),
+        (a.z > b.z? a.z : b.z)
+    };
+    return out;
+}
+
+static v3 v3_Lerp(v3 a, v3 b, f32 t) {
+    v3 out = {
+        a.x + t * (b.x - a.x),
+        a.y + t * (b.y - a.y),
+        a.z + t * (b.z - a.z)
+    };
+
+    return out;
+}
+
+static v3 v3_Cross(v3 a, v3 b) {
+    v3 r;
+
+	r.x = a.y * b.z - a.z * b.y;
+	r.y = a.z * b.x - a.x * b.z;
+	r.z = a.x * b.y - a.y * b.x;
+
+    return r;
+}
+
+static v3 v3_Spline(f32 f, v3 a, v3 b, v3 c, v3 d) {
+	f32 i = 1.0f - f;
+
+    v3 out = {
+        ((d.x * f + c.x * i) * f + (c.x * f + b.x * i) * i) * f + ((c.x * f + b.x * i) * f + (b.x * f + a.x * i) * i) * i,
+        ((d.y * f + c.y * i) * f + (c.y * f + b.y * i) * i) * f + ((c.y * f + b.y * i) * f + (b.y * f + a.y * i) * i) * i,
+        ((d.z * f + c.z * i) * f + (c.z * f + b.z * i) * i) * f + ((c.z * f + b.z * i) * f + (b.z * f + a.z * i) * i) * i
+    };
+
+    return out;
+}
+
+// v4:
+static v4 v4_Neg(v4 a) {
+    v4 out = { -a.x, -a.y, -a.z, -a.w };
+    return out;
+}
+
+static v4 v4_Add(v4 a, v4 b) {
+    v4 out = { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
+    return out;
+}
+
+static v4 v4_Sub(v4 a, v4 b) {
+    v4 out = { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
+    return out;
+}
+
+static v4 v4_Mul(v4 a, v4 b) {
+    v4 out = { a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w };
+    return out;
+}
+
+static v4 v4_Scale(v4 a, f32 s) {
+    v4 out = { a.x * s, a.y * s, a.z * s, a.w * s };
+    return out;
+}
+
+static f32 v4_Dot(v4 a, v4 b) {
+    return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+}
+
+static f32 v4_LenSq(v4 v) {
+    return v4_Dot(v, v);
+}
+
+static f32 v4_Len(v4 v) {
+    return sqrtf(v4_Dot(v, v));
+}
+
+static f32 v4_DistSq(v4 a, v4 b) {
+    return v4_LenSq(v4_Sub(b, a));
+}
+
+static f32 v4_Dist(v4 a, v4 b) {
+    return sqrtf(v4_DistSq(a, b));
+}
+
+static v4 v4_Norm(v4 v) {
+    return v4_Scale(v, rsqrtf(v4_Dot(v, v)));
+}
+
+static v4 v4_Min(v4 a, v4 b) {
+    v4 out = {
+        (a.x < b.x? a.x : b.x),
+        (a.y < b.y? a.y : b.y),
+        (a.z < b.z? a.z : b.z),
+        (a.w < b.w? a.w : b.w)
+    };
+    return out;
+}
+
+static v4 v4_Max(v4 a, v4 b) {
+    v4 out = {
+        (a.x > b.x? a.x : b.x),
+        (a.y > b.y? a.y : b.y),
+        (a.z > b.z? a.z : b.z),
+        (a.w > b.w? a.w : b.w)
+    };
+    return out;
+}
+
+static v4 v4_Lerp(v4 a, v4 b, f32 t) {
+    v4 out = {
+        a.x + t * (b.x - a.x),
+        a.y + t * (b.y - a.y),
+        a.z + t * (b.z - a.z),
+        a.w + t * (b.w - a.w)
+    };
+    return out;
+}
+
+static v4 v4_Cross(v4 a, v4 b) {
+    v4 out = {
+        a.y * b.z - a.z * b.y,
+        a.z * b.x - a.x * b.z,
+        a.x * b.y - a.y * b.x,
+        1.0f
+    };
+    return out;
+}
+
+static v4 v4_Spline(f32 f, v4 a, v4 b, v4 c, v4 d) {
+	f32 i = 1.0f - f;
+
+    v4 out = {
+	    ((d.x * f + c.x * i) * f + (c.x * f + b.x * i) * i) * f + ((c.x * f + b.x * i) * f + (b.x * f + a.x * i) * i) * i,
+	    ((d.y * f + c.y * i) * f + (c.y * f + b.y * i) * i) * f + ((c.y * f + b.y * i) * f + (b.y * f + a.y * i) * i) * i,
+	    ((d.z * f + c.z * i) * f + (c.z * f + b.z * i) * i) * f + ((c.z * f + b.z * i) * f + (b.z * f + a.z * i) * i) * i,
+	    ((d.w * f + c.w * i) * f + (c.w * f + b.w * i) * i) * f + ((c.w * f + b.w * i) * f + (b.w * f + a.w * i) * i) * i
+    };
+
+    return out;
+}
+
+// m2:
+static m2 m2_Mul(m2 a, m2 b) {
+    m2 out = {
+        a.array[0] * b.array[0] + a.array[2] * b.array[1],
+        a.array[1] * b.array[0] + a.array[3] * b.array[1],
+        a.array[0] * b.array[2] + a.array[2] * b.array[3],
+        a.array[1] * b.array[2] + a.array[3] * b.array[3]
+    };
+    return out;
+}
+
+static v2 m2_Mulv(m2 R, v2 v) {
+    v2 out = {
+        R.array[0] * v.x + R.array[2] * v.y,
+        R.array[1] * v.x + R.array[3] * v.y
+    };
+    return out;
+}
+
+static m2 m2_Identity(void) {
+    m2 out = { 1.0f, 0.0f, 0.0f, 1.0f };
+    return out;
+}
+
+static m2 m2_Rotate(f32 angle) {
+    f32 c = cosf(angle);
+    f32 s = sinf(angle);
+
+    m2 out = { c, s, -s, c };
+
+    return out;
+}
+
+static m2 m2_Scale(f32 sx, f32 sy) {
+    m2 out = { sx, 0.0f, 0.0f, sy };
+    return out;
+}
+
+// m3:
+static m3 m3_Mul(m3 a, m3 b) {
+    m3 out = {
+        a.array[0] * b.array[0] + a.array[3] * b.array[1]  + a.array[6] * b.array[2],
+        a.array[1] * b.array[0] + a.array[4] * b.array[1]  + a.array[7] * b.array[2],
+        a.array[2] * b.array[0] + a.array[5] * b.array[1]  + a.array[8] * b.array[2],
+
+        a.array[0] * b.array[3] + a.array[3] * b.array[4]  + a.array[6] * b.array[5],
+        a.array[1] * b.array[3] + a.array[4] * b.array[4]  + a.array[7] * b.array[5],
+        a.array[2] * b.array[3] + a.array[5] * b.array[4]  + a.array[8] * b.array[5],
+
+        a.array[0] * b.array[6] + a.array[3] * b.array[7]  + a.array[6] * b.array[8],
+        a.array[1] * b.array[6] + a.array[4] * b.array[7]  + a.array[7] * b.array[8],
+        a.array[2] * b.array[6] + a.array[5] * b.array[7]  + a.array[8] * b.array[8]
+    };
+    return out;
+}
+
+static v3 m3_Mulv(m3 M, v3 v) {
+    v3 out = {
+        M.array[0] * v.array[0] + M.array[3] * v.array[1] + M.array[6] * v.array[2],
+        M.array[1] * v.array[0] + M.array[4] * v.array[1] + M.array[7] * v.array[2],
+        M.array[2] * v.array[0] + M.array[5] * v.array[1] + M.array[8] * v.array[2]
+    };
+    return out;
+}
+
+static m3 m3_Identity(void) {
+    m3 out = {
+        1.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 1.0f
+    };
+    return out;
+}
+
+static m3 m3_Rotate(v3 axis, f32 angle) {
+    f32 c = cosf(angle);
+    f32 s = sinf(angle);
+
+    f32 k = 1.0f - c;
+
+    v3 sa   = { s * axis.x, s * axis.y, s * axis.z };
+    v3 omca = { k * axis.x, k * axis.y, k * axis.z };
+
+    m3 out = {
+        omca.x * axis.x + c,
+        omca.x * axis.y - sa.z,
+        omca.x * axis.z + sa.y,
+
+        omca.y * axis.x + sa.z,
+        omca.y * axis.y + c,
+        omca.y * axis.z - sa.x,
+
+        omca.z * axis.x - sa.y,
+        omca.z * axis.y + sa.x,
+        omca.z * axis.z + c
+    };
+    return out;
+}
+
+static m3 m3_Euler(f32 yaw, f32 pitch, f32 roll) {
+    f32 cy = cosf(yaw);
+    f32 sy = sinf(yaw);
+    f32 cp = cosf(pitch);
+    f32 sp = sinf(pitch);
+    f32 cr = cosf(roll);
+    f32 sr = sinf(roll);
+
+    m3 out = {
+        cy * cp,
+        sy * cp,
+        -sp,
+
+        cy * sp * sr - sy * cr,
+        sy * sp * sr + cy * cr,
+        cp * sr,
+
+        cy * sp * cr + sy * sr,
+        sy * sp * cr - cy * sr,
+        cp * cr,
+    };
+
+    return out;
+}
+
+// m4:
+static m4 m4_Mul(m4 a, m4 b) {
+    m4 out = {
+        a.array[0] * b.array[0]  + a.array[4] * b.array[1]  + a.array[8]  * b.array[2]  + a.array[12] * b.array[3],
+        a.array[1] * b.array[0]  + a.array[5] * b.array[1]  + a.array[9]  * b.array[2]  + a.array[13] * b.array[3],
+        a.array[2] * b.array[0]  + a.array[6] * b.array[1]  + a.array[10] * b.array[2]  + a.array[14] * b.array[3],
+        a.array[3] * b.array[0]  + a.array[7] * b.array[1]  + a.array[11] * b.array[2]  + a.array[15] * b.array[3],
+
+        a.array[0] * b.array[4]  + a.array[4] * b.array[5]  + a.array[8]  * b.array[6]  + a.array[12] * b.array[7],
+        a.array[1] * b.array[4]  + a.array[5] * b.array[5]  + a.array[9]  * b.array[6]  + a.array[13] * b.array[7],
+        a.array[2] * b.array[4]  + a.array[6] * b.array[5]  + a.array[10] * b.array[6]  + a.array[14] * b.array[7],
+        a.array[3] * b.array[4]  + a.array[7] * b.array[5]  + a.array[11] * b.array[6]  + a.array[15] * b.array[7],
+
+        a.array[0] * b.array[8]  + a.array[4] * b.array[9]  + a.array[8]  * b.array[10] + a.array[12] * b.array[11],
+        a.array[1] * b.array[8]  + a.array[5] * b.array[9]  + a.array[9]  * b.array[10] + a.array[13] * b.array[11],
+        a.array[2] * b.array[8]  + a.array[6] * b.array[9]  + a.array[10] * b.array[10] + a.array[14] * b.array[11],
+        a.array[3] * b.array[8]  + a.array[7] * b.array[9]  + a.array[11] * b.array[10] + a.array[15] * b.array[11],
+
+        a.array[0] * b.array[12] + a.array[4] * b.array[13] + a.array[8]  * b.array[14] + a.array[12] * b.array[15],
+        a.array[1] * b.array[12] + a.array[5] * b.array[13] + a.array[9]  * b.array[14] + a.array[13] * b.array[15],
+        a.array[2] * b.array[12] + a.array[6] * b.array[13] + a.array[10] * b.array[14] + a.array[14] * b.array[15],
+        a.array[3] * b.array[12] + a.array[7] * b.array[13] + a.array[11] * b.array[14] + a.array[15] * b.array[15]
+    };
+    return out;
+}
+
+static v4 m4_Mulv(m4 M, v4 v) {
+    v4 out = {
+        M.array[0] * v.array[0] + M.array[4] * v.array[1] + M.array[8]  * v.array[2] + M.array[12] * v.array[3],
+        M.array[1] * v.array[0] + M.array[5] * v.array[1] + M.array[9]  * v.array[2] + M.array[13] * v.array[3],
+        M.array[2] * v.array[0] + M.array[6] * v.array[1] + M.array[10] * v.array[2] + M.array[14] * v.array[3],
+        M.array[3] * v.array[0] + M.array[7] * v.array[1] + M.array[11] * v.array[2] + M.array[15] * v.array[3]
+    };
+    return out;
+}
+
+static m4 m4_Identity(void) {
+    m4 out = {
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f,
+    };
+    return out;
+}
+
+static m4 m4_Transpose(m4 N) {
+    m4 out = {
+        N.array[0],   N.array[1],   N.array[2],   N.array[3],
+	    N.array[4],   N.array[5],   N.array[6],   N.array[7],
+	    N.array[8],   N.array[9],   N.array[10],  N.array[11],
+	    N.array[12],  N.array[13],  N.array[14],  N.array[15]
+    };
+    return out;
+}
+
+static m4 m4_Translate(f32 x, f32 y, f32 z) {
+    m4 out = {
+        1.0f,   0.0f,   0.0f,   0.0f,
+        0.0f,   1.0f,   0.0f,   0.0f,
+        0.0f,   0.0f,   1.0f,   0.0f,
+        x,      y,      z,      1.0f
+    };
+    return out;
+}
+
+static m4 m4_RotateX(f32 angle) {
+    f32 s = sinf(angle);
+	f32 c = cosf(angle);
+
+    m4 out = {
+        1.0f,   0.0f,   0.0f,   0.0f,
+        0.0f,      c,      s,   0.0f,
+        0.0f,     -s,      c,   0.0f,
+        0.0f,   0.0f,   0.0f,   1.0f
+    };
+    return out;
+}
+
+static m4 m4_RotateY(f32 angle) {
+    f32 s = sinf(angle);
+	f32 c = cosf(angle);
+
+    m4 out = {
+           c,   0.0f,      s,   0.0f,
+        0.0f,   1.0f,   0.0f,   0.0f,
+          -s,   0.0f,      c,   0.0f,
+        0.0f,   0.0f,   0.0f,   1.0f
+    };
+    return out;
+}
+
+static m4 m4_RotateZ(f32 angle) {
+	f32 s = sinf(angle);
+	f32 c = cosf(angle);
+
+    m4 out = {
+           c,      s,   0.0f,   0.0f,
+          -s,      c,   0.0f,   0.0f,
+        0.0f,   0.0f,   1.0f,   0.0f,
+        0.0f,   0.0f,   0.0f,   1.0f
+    };
+    return out;
+}
+
+static m4 m4_Rotate(v3 axis, f32 angle) {
+    f32 sa[3];
+    f32 omca[3];
+
+    f32 cosv      = cosf(angle);
+    f32 sinv      = sinf(angle);
+    f32 inv_cosv  = 1.0f - cosv;
+
+    sa[0] = axis.x * sinv;
+    sa[1] = axis.y * sinv;
+    sa[2] = axis.z * sinv;
+
+    omca[0] = axis.x * inv_cosv;
+    omca[1] = axis.y * inv_cosv;
+    omca[2] = axis.z * inv_cosv;
+
+    m4 out = {
+        omca[0] * axis.x + cosv,   omca[0] * axis.y - sa[0],  omca[0] * axis.z + sa[1],  0.0f,
+        omca[1] * axis.x + sa[2],  omca[1] * axis.y + cosv,   omca[1] * axis.z - sa[0],  0.0f,
+        omca[2] * axis.x - sa[1],  omca[2] * axis.y + sa[0],  omca[2] * axis.z + cosv,   0.0f,
+        0.0f,   0.0f,   0.0f,   1.0f
+    };
+
+    return out;
+}
+
+static m4 m4_Frustum(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
+    m4 out = {
+        2.0f * n / (r - l),
+        0.0f,
+        0.0f,
+        0.0f,
+
+        0.0f,
+        2.0f * n / (t - b),
+        0.0f,
+        0.0f,
+
+        (r + l) / (r - l),
+        (t + b) / (t - b),
+        -(f + n) / (f - n),
+        -1.0f,
+
+        0.0f,
+        0.0f,
+        -2.0f * (f * n) / (f - n),
+        0.0f
+    };
+    return out;
+}
+
+static m4 m4_Ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
+    m4 out = {
+        2.0f / (r - l),
+        0.0f,
+        0.0f,
+        0.0f,
+
+        0.0f,
+        2.0f / (t - b),
+        0.0f,
+        0.0f,
+
+        0.0f,
+        0.0f,
+        -2.0f / (f - n),
+        0.f,
+
+        -(r + l) / (r - l),
+        -(t + b) / (t - b),
+        -(f + n) / (f - n),
+        1.0f
+    };
+    return out;
+}
+
+static m4 m4_Perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
+    f32 a = 1.0f / tanf(y_fov / 2.0f);
+
+    m4 out = {
+        a / aspect,
+        0.0f,
+        0.0f,
+        0.0f,
+
+        0.0f,
+        a,
+        0.0f,
+        0.0f,
+
+        0.0f,
+        0.0f,
+        -((f + n) / (f - n)),
+        -1.0f,
+
+        0.0f,
+        0.0f,
+        -((2.f * f * n) / (f - n)),
+        0.0f
+    };
+    return out;
+}
+
+static m4 m4_LookAt(v3 eye, v3 center, v3 up) {
+    v3 f = v3_Norm(v3_Sub(center, eye));
+    v3 s = v3_Norm(v3_Cross(f, up));
+	v3 t = v3_Cross(s, f);
+
+    m4 M;
+
+	M.array[0]  =  s.x;
+	M.array[1]  =  t.x;
+	M.array[2]  = -f.x;
+	M.array[3]  =   0.0f;
+
+	M.array[4]  =  s.y;
+	M.array[5]  =  t.y;
+	M.array[6]  = -f.y;
+	M.array[7]  =   0.0f;
+
+	M.array[8]  =  s.z;
+	M.array[9]  =  t.z;
+	M.array[10] = -f.z;
+	M.array[11] =   0.0f;
+
+    M.array[12] = -(M.array[0] * eye.x + M.array[4] * eye.y + M.array[8]  * eye.z);
+    M.array[13] = -(M.array[1] * eye.x + M.array[5] * eye.y + M.array[9]  * eye.z);
+    M.array[14] = -(M.array[2] * eye.x + M.array[6] * eye.y + M.array[10] * eye.z);
+    M.array[15] = -(M.array[3] * eye.x + M.array[7] * eye.y + M.array[11] * eye.z - 1.0f);
+
+    return M;
+}
+
+// ================================================== PLATFORM ========================================== //
 
 struct {
     b32             close;
@@ -115,3 +898,4 @@ void PlatformUpdate(void) {
     glfwSwapBuffers(platform.window);
     glfwPollEvents();
 }
+
