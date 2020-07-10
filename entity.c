@@ -31,10 +31,6 @@ static void RemoveEntity(EntityManager* em, i32 index) {
     em->array[index] = em->array[--em->count];
 }
 
-static Entity* GetEntity(EntityManager* em, i32 index) {
-    return &em->array[index];
-}
-
 static void UpdateEntities(EntityManager* em, f32 dt) {
     for (int i = 0; i < em->count; ++i) {
         Entity* e = &em->array[i];

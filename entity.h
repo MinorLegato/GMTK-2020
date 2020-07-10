@@ -34,5 +34,4 @@ typedef struct EntityManager {
 
 static void     AddEntity      (EntityManager* em, const Entity* e);
 static void     RemoveEntity    (EntityManager* em, i32 index);
-static Entity*  GetEntity       (EntityManager* em, i32 index);
 
