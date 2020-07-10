@@ -4,6 +4,6 @@ static void CameraUpdate(Camera* cam, f32 dt) {
             v3_Lerp(cam->current, cam->target, 8.0f * dt),
             v3_Rand(-cam->shake, cam->shake));
 
-    cam->shake -= dt;
+    cam->shake = fClamp(cam->shake - dt, 0.0f, 1.0f);
 }
 

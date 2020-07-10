@@ -29,6 +29,10 @@ typedef unsigned long long  b64;
 #define true   (!false)
 #endif
 
+#ifndef PI
+#define PI  (3.14159265359f)
+#endif
+
 #define ARRAY_COUNT(array) (sizeof (array) / sizeof (array[0]))
 
 typedef union v2 {
@@ -117,6 +121,85 @@ typedef union m4 {
 
 static f32 rsqrtf(f32 n) {
     return n == 0.0f? 0.0f : 1.0f / sqrtf(n);
+}
+
+static f32 fLerp(f32 a, f32 b, f32 t) {
+    return a + t * (b - a);
+}
+
+static f32 fUnLerp(f32 a, f32 b, f32 t) {
+    return (t - a) / (b - a);
+}
+
+static f32 fSmoothStep(f32 n) {
+	if (n < 0.0f) { return 0.0f; }
+	if (n < 1.0f) { return (3.0f * n * n - 2.0f * n * n * n); }
+
+	return 1.0f;
+}
+
+static f32 fShortAngleDist(f32 a, f32 b) {
+    f32 max = 2.0f * PI;
+    f32 da  = fmodf(b - a, max);
+    return fmodf(2.0f * da, max) - da;
+}
+
+static f32 fLerpAngle(f32 a, f32 b, f32 t) {
+    return a + fShortAngleDist(a, b) * t;
+}
+
+static f32 fSnap(f32 f, f32 step_size) {
+	if (f > 0)  { return (f32)((int)(f / step_size + 0.5f)) * step_size; }
+    else        { return (f32)((int)(f / step_size - 0.5f)) * step_size; }
+}
+
+static f32 fSpline(f32 f, f32 a, f32 b, f32 c, f32 d) {
+	f32 i = 1.0f - f;
+	return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
+}
+
+static f32 fMin(f32 a, f32 b) {
+    return a < b? a : b;
+}
+
+static f32 fMax(f32 a, f32 b) {
+    return a < b? b : a;
+}
+
+static int iMin(int a, int b) {
+    return a < b? a : b;
+}
+
+static int iMax(int a, int b) {
+    return a < b? b : a;
+}
+
+static f32 fClamp(f32 n, f32 min, f32 max) {
+    if (n < min) return min;
+    if (n > max) return max;
+    return n;
+}
+
+static f32 fClampMin(f32 n, f32 min) {
+    return n < min? min : n;
+}
+
+static f32 fClampMax(f32 n, f32 max) {
+    return n > max? max : n;
+}
+
+static int iClamp(int n, int min, int max) {
+    if (n < min) return min;
+    if (n > max) return max;
+    return n;
+}
+
+static int iClampMin(int n, int min) {
+    return n < min? min : n;
+}
+
+static int iClampMax(int n, int max) {
+    return n > max? max : n;
 }
 
 // v2:
