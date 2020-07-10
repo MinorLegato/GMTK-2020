@@ -4,10 +4,7 @@ static void GameInit(GameState* gs) {
         .target =  (v3) { 0.0f, 0.0f, 16.0f }
     };
     
-    AddEntity(&gs->em, &(Entity) {
-                  .type   = ENTITY_PLAYER,
-                  .rad    = 0.5f,
-              });
+    AddEntity(&gs->em, &(Entity) { .type = ENTITY_PLAYER, .rad = 0.5f });
 }
 
 static void GameRun(GameState* gs) {
