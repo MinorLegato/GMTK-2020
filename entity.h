@@ -13,3 +13,5 @@ typedef struct Entity {
     f32         rad;
 } Entity;
 
+static void entity_render();
+static void entity_update();
