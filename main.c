@@ -7,6 +7,7 @@
 #include "game.h"
 
 #include "render.c"
+#include "camera.c"
 #include "map.c"
 #include "entity.c"
 #include "particle.c"
