@@ -131,7 +131,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 }
                 
                 v2 mouse_vec = v2_Sub(mouse_world_position.xy, e->pos);
-
+                
                 e->aim  = v2_Norm(mouse_vec);
                 
                 if (platform.mouse_down[GLFW_MOUSE_BUTTON_LEFT] && e->cooldown <= 0.0f) {
@@ -240,16 +240,20 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
         const Tile*     tile = &map->tiles[(int)e->pos.y][(int)e->pos.x];
         
         v3 light = tile->light;
-
+        
         f32 speed = v2_Len(e->vel);
+        
+        if (e->flags & ENTITY_FLAG_DAMAGE) {
+            light = (v3) { 1.0f, 1.0f, 1.0f };
+        }
         
         switch (e->type) {
             case ENTITY_PLAYER: {
                 v3 player_pos = { e->pos.x, e->pos.y, 0.3f } ;
                 v3 weapon_pos = v3_Add(player_pos, (v3) { .xy = v2_Scale(e->aim, 0.4f), ._z = 0.1f });
-
+                
                 RenderTexture(player_texture, player_pos, e->rad, 0.1f * sinf(speed * platform.time_total),  (v4) { light.r, light.g, light.b, 1.0f });
-
+                
                 if (e->powerup != POWERUP_MELEE) {
                     RenderTexture(gun_texture, weapon_pos, e->rad, v2_GetAngle((v2) { -1.0f, 0.0f }, e->aim), (v4) { light.r, light.g, light.b, 1.0f });
                 } else {
@@ -267,11 +271,6 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
                 RenderTexture(zombie_texture, (v3) { e->pos.x, e->pos.y, 0.1f }, e->rad, 0.5f * PI, (v4) { 0.7f * light.r, 0.5f * light.g, 0.5f * light.b, 1.0f });
             } break;
         }
-        
-        if (e->flags & ENTITY_FLAG_DAMAGE) {
-            RenderRect(e->pos, 0.11f, (v2) { e->rad, e->rad }, (v4) { light.r, light.g, light.b, 1.0f });
-        }
-        
     }
 }
 
@@ -353,7 +352,7 @@ static void GameRun(GameState* gs) {
         
         UpdateEntities(gs, dt);
         
-        ParticlesUpdate(&gs->particle_system, dt);
+        ParticlesUpdate(gs, dt);
         CameraUpdate(&gs->camera, dt);
         
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

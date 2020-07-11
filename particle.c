@@ -16,7 +16,7 @@ static Particle CreateParticle(v2 pos, v2 vel, f32 rad, f32 life, v3 col) {
         .max_life = life,
         .col.rgb  = col
     };
-
+    
     return p;
 }
 
@@ -46,13 +46,20 @@ static void BloodExplosion(ParticleSystem* ps, Entity* e, i32 amount) {
     }
 }
 
-static void ParticlesUpdate(ParticleSystem* ps, f32 t) {
+static void ParticlesUpdate(GameState* gs, f32 t) {
+    ParticleSystem* ps = &gs->particle_system;
+    Map* map = &gs->map;
     for(int i = 0; i < ps->count; i++) {
         Particle* p = &ps->particles[i];
         
         p->pos.x += p->vel.x * t;
         p->pos.y += p->vel.y * t;
         p->life  -= t;
+        
+        if (map->tiles[(i32)(p->pos.y + p->rad)][(i32)(p->pos.x)].type == TILE_WALL) { p->vel.y = 0.0f; p->pos.y = ceilf(p->pos.y)  - p->rad; }
+        if (map->tiles[(i32)(p->pos.y - p->rad)][(i32)(p->pos.x)].type == TILE_WALL) { p->vel.y = 0.0f; p->pos.y = floorf(p->pos.y) + p->rad; }
+        if (map->tiles[(i32)(p->pos.y)][(i32)(p->pos.x - p->rad)].type == TILE_WALL) { p->vel.x = 0.0f; p->pos.x = floorf(p->pos.x) + p->rad; }
+        if (map->tiles[(i32)(p->pos.y)][(i32)(p->pos.x + p->rad)].type == TILE_WALL) { p->vel.x = 0.0f; p->pos.x = ceilf(p->pos.x)  - p->rad; }
         
         if (p->life <= 0.0f) {
             ParticleRemove(ps, i);
