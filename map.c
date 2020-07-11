@@ -47,12 +47,46 @@ static void MapRender(Map* map) {
     }
 }
 
-static void MapUpdate(Map* map, f32 dt) {
+static void MapUpdate(Map* map, ParticleSystem* ps, f32 dt) {
     for (int y = 0; y < MAP_HEIGHT; ++y) {
         for (int x = 0; x < MAP_WIDTH; ++x) {
             Tile* tile = &map->tiles[y][x];
 
             tile->light = v3_Lerp(tile->light, (v3) {0}, 1.0f * dt);
+
+            if (tile->heat > 0.0f) {
+                tile->heat -= dt;
+            }
+
+            if (tile->fire > 0.0f) {
+                tile->fire -= dt;
+
+                for (int i = 0; i < 4; ++i) {
+                    int nx = x + (int[]) { -1, 1, 0, 0 } [i];
+                    int ny = y + (int[]) { 0, 0, -1, 1 } [i];
+
+                    if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) continue;
+
+                    Tile* nt = &map->tiles[ny][nx];
+                    
+                    nt->heat += 1.2f * dt;
+                }
+
+                {
+                    Particle particle = {
+                        .pos        = { x + fRand(0.0f, 1.0f), y + fRand(0.0f, 1.0f) },
+                        .vel        = v2_Rand(-2.0f, 2.0f),
+                        .rad        = fRand(0.05f, 0.1f),
+                        .life       = fRand(0.1f, 1.0f),
+                        .max_life   = particle.life,
+                        .col        = { 1.0f, 0.5f, 0.0f, 1.0f },
+                    };
+
+                    ParticleAdd(ps, &particle);
+                }
+            } else if (tile->heat > 1.0f) {
+                tile->fire = 2.0f;
+            }
         }
     }
 }

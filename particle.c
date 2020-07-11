@@ -22,8 +22,13 @@ static Particle CreateParticle(v2 pos, v2 vel, f32 rad, f32 life, v3 col) {
 
 static void ParticleExplosion(ParticleSystem* ps, v2 pos, f32 max_rad, i32 amount, f32 max_speed) {
     for (int i = 0; i < amount; i++) {
-        Particle p = CreateParticle(pos, v2_Rand(-max_speed, max_speed), fRand(0.03f, max_rad),
-                                    fRand(0.5f, 1.0f), v3_Rand(0.0f, 1.0f));
+        Particle p = CreateParticle(
+                pos,
+                v2_Rand(-max_speed, max_speed),
+                fRand(0.03f, max_rad),
+                fRand(0.5f, 1.0f),
+                (v3) { fRand(0.7f, 1.0f), fRand(0.5f, 0.7f), 0.0f });
+
         ParticleAdd(ps, &p);
     }
 }
