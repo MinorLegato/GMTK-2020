@@ -4,6 +4,8 @@ static void PushCollision(Entity* a, const Entity* b, f32 dt) {
 }
 
 static void DamageCollision(Entity* a, const Entity* b, f32 dt) {
+    EntityPush(a, v2_Scale(v2_Norm(b->vel), 2.0));
+
     a->life -= 1.0f;
 }
 
@@ -36,11 +38,11 @@ static CollisionFunc* collision_table[ENTITY_COUNT][ENTITY_COUNT] = {
 static void HandleCollision(GameState* gs, f32 dt) {
     EntityManager*  em  = &gs->entity_manager;
     Map*            map = &gs->map;
-    
+
     for (int i = 0; i < em->count; ++i) {
         Entity* a = &em->array[i];
 
-        a->flags = a->flags & ~ENTITY_FLAG_IMPACT;
+        a->flags = a->flags & ~(ENTITY_FLAG_IMPACT | ENTITY_FLAG_DAMAGE);
 
         b32 impact = false;
 
@@ -54,6 +56,8 @@ static void HandleCollision(GameState* gs, f32 dt) {
         if (map->tiles[(i32)(a->pos.y)][(i32)(a->pos.x - a->rad)].type == TILE_WALL) { impact = true; a->vel.x = 0.0f; a->pos.x = floorf(a->pos.x) + a->rad; }
         if (map->tiles[(i32)(a->pos.y)][(i32)(a->pos.x + a->rad)].type == TILE_WALL) { impact = true; a->vel.x = 0.0f; a->pos.x = ceilf(a->pos.x)  - a->rad; }
         
+        f32 life = a->life;
+
         for (int j = 0; j < em->count; ++j) {
             if (i == j) continue;
             
@@ -66,6 +70,10 @@ static void HandleCollision(GameState* gs, f32 dt) {
                 impact = true;
                 collision_table[a->type][b->type](a, b, dt);
             }
+        }
+
+        if (life != a->life) {
+            a->flags |= ENTITY_FLAG_DAMAGE;
         }
 
         if (impact) {
@@ -233,6 +241,11 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
                 RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 0.0f, 0.0f, 1.0f * light.r, 1.0f });
             } break;
         }
+
+        if (e->flags & ENTITY_FLAG_DAMAGE) {
+            RenderRect(e->pos, 0.11f, (v2) { e->rad, e->rad }, (v4) { light.r, light.g, light.b, 1.0f });
+        }
+
     }
 }
 
@@ -255,15 +268,17 @@ static void GameInit(GameState* gs) {
     
     v2 player_pos = GetValidSpawnLocation(&gs->map);
 
-    EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_PLAYER, .pos = player_pos, .rad = 0.2f, .life = 1.0f, .powerup = POWERUP_NONE });
+    gs->camera.current.xy = player_pos;
+
+    EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_PLAYER, .pos = player_pos, .rad = 0.2f, .life = 10.0f, .powerup = POWERUP_NONE });
     
     for (int i = 0; i < 64; ++i) {
         v2 enemy_pos = GetValidSpawnLocation(&gs->map);
         
-        while (v2_DistSq(player_pos, enemy_pos) < 8.0f * 8.0f)
+        while (v2_DistSq(player_pos, enemy_pos) < 12.0f * 12.0f)
             enemy_pos = GetValidSpawnLocation(&gs->map);
         
-        EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_ENEMY, .pos = enemy_pos, .rad = 0.2f, .life = 1.0f });
+        EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_ENEMY, .pos = enemy_pos, .rad = 0.2f, .life = 2.0f });
     }
 }
 
@@ -296,10 +311,10 @@ static void GameRun(GameState* gs) {
                 for (int i = 0; i < 64; ++i) {
                     v2 enemy_pos = GetValidSpawnLocation(&gs->map);
 
-                    while (v2_DistSq(player_pos, enemy_pos) < 8.0f * 8.0f)
+                    while (v2_DistSq(player_pos, enemy_pos) < 12.0f * 12.0f)
                         enemy_pos = GetValidSpawnLocation(&gs->map);
 
-                    EntityAdd(em, &(Entity) { .type = ENTITY_ENEMY, .pos = enemy_pos, .rad = 0.2f, .life = 1.0f });
+                    EntityAdd(em, &(Entity) { .type = ENTITY_ENEMY, .pos = enemy_pos, .rad = 0.2f, .life = 2.0f });
                 }
             }
         }
@@ -309,6 +324,7 @@ static void GameRun(GameState* gs) {
         AddLight(&gs->map, mouse_world_position.x, mouse_world_position.y, (v3) { 0.5f, 0.0f, 0.5f });
         
         HandleCollision(gs, dt);
+
         UpdateEntities(gs, dt);
         
         ParticlesUpdate(&gs->particle_system, dt);

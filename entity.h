@@ -45,6 +45,7 @@ static v3 powerup_colors[] = {
 enum EntityFlags_ {
     ENTITY_FLAG_NONE    =   (0),
     ENTITY_FLAG_IMPACT  =   (1 << 1),
+    ENTITY_FLAG_DAMAGE  =   (1 << 2),
 };
 
 typedef struct Entity {

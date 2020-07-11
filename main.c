@@ -15,7 +15,7 @@ static v3 mouse_world_position;
 #include "particle.c"
 #include "game.c"
 
-static void RenderMainMenu() {
+static void RenderMainMenu(void) {
     RenderRect((v2) { 0.0f, 0.0f }, 0.0f, (v2) { 1.0f, 1.0f }, (v4) { 1.0f, 0.0f, 0.0f, 1.0f });
 }
 
