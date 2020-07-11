@@ -94,8 +94,6 @@ static void RenderEntities(EntityManager* em) {
                     } break;
                 }
                 RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, color);
-            }
-                RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 1.0f, 1.0f, 1.0f, 1.0f });
             } break;
             case ENTITY_ENEMY: {
                 RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 1.0f, 0.0f, 0.0f, 1.0f });
@@ -107,8 +105,8 @@ static void RenderEntities(EntityManager* em) {
 static void GameInit(GameState* gs) {
     *gs = (GameState) {0};
     
-    EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_PLAYER, .pos = { 0.5f * MAP_WIDTH, 0.5f * MAP_HEIGHT }, .rad = 0.2f, .life = 1.0f });
-
+    EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_PLAYER, .pos = { 0.5f * MAP_WIDTH, 0.5f * MAP_HEIGHT }, .rad = 0.2f, .life = 1.0f, .powerup = POWERUP_NONE });
+    
     for (int i = 0; i < 16; ++i) {
         EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_ENEMY, .pos = { fRand(0, MAP_WIDTH), fRand(0, MAP_HEIGHT) }, .rad = 0.2f, .life = 1.0f });
     }
