@@ -112,26 +112,32 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 if (platform.mouse_down[GLFW_MOUSE_BUTTON_LEFT] && e->cooldown <= 0.0f) {
                     shoot   = true;
                     e->aim  = v2_Norm(mouse_vec);
-                    
+
                     cam->shake += 0.1f;
                 }
-                
+
+                if (shoot) {
+                    CreateBullet(em, e, e->aim);
+                    e->cooldown = powerup_cooldowns[e->powerup];
+                }
+
+
                 EntityFriction(e, 4.0f);
                 EntityApply(e, v2_Scale(v2_Norm(acc), 8.0f));
-                
+
                 AddLight(map, e->pos.x, e->pos.y, (v3) { 0.8f, 0.8f, 0.0f });
-                
+
                 cam->target = (v3) {
                     .xy = v2_Add(v2_Add(e->pos, v2_Scale(e->vel, 0.8f)), v2_Scale(mouse_vec, 0.3f)),
-                    ._z = 12.0f + fClampMax(v2_Len(e->vel), 4.0f),
+                        ._z = 12.0f + fClampMax(v2_Len(e->vel), 4.0f),
                 };
-                
+
                 UpdatePathToPlayer(map, e->pos.x, e->pos.y);
             } break;
             case ENTITY_BULLET: {
                 if (e->flags & ENTITY_FLAG_IMPACT) {
                     for (int i = 0; i < 32; ++i) {
-                        Particle p = CreateParticle(e->pos, v2_Rand(-2.0f, 2.0f), 0.02f, 0.5f, powerup_colors[e->powerup]);
+                        Particle p = CreateParticle(e->pos, v2_Rand(-2.0f, 2.0f), 0.02f, 0.1f, powerup_colors[e->powerup]);
 
                         ParticleAdd(&gs->particle_system, &p);
                     }
@@ -148,12 +154,12 @@ static void UpdateEntities(GameState* gs, f32 dt) {
             } break;
             case ENTITY_ENEMY: {
                 v2 next_tile = NextPathToPlayer(map, e->pos.x, e->pos.y);
-                
+
                 v2 dir = v2_Norm(v2_Sub(next_tile, e->pos));
-                
+
                 EntityFriction(e, 4.0f);
                 EntityApply(e, v2_Scale(dir, 6.0f));
-                
+
                 AddLight(map, e->pos.x, e->pos.y, (v3) { 0.8f, 0.0f, 0.1f });
                 Entity* player = &em->array[0];
                 v2 dist_vec = v2_Sub(player->pos, e->pos);
@@ -163,13 +169,8 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 }
             } break;
         }
-        
+
         EntityUpdate(e, dt);
-        
-        if (shoot) {
-            CreateBullet(em, e, e->aim);
-            e->cooldown = powerup_cooldowns[e->powerup];
-        }
 
         if (e->life <= 0.0f) {
             if(e->type == ENTITY_BULLET) {
@@ -193,9 +194,9 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
     for (int i = 0; i < em->count; ++i) {
         const Entity*   e    = &em->array[i];
         const Tile*     tile = &map->tiles[(int)e->pos.y][(int)e->pos.x];
-        
+
         v3 light = tile->light;
-        
+
         switch (e->type) {
             case ENTITY_PLAYER: {
                 RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 1.0f * light.r, 0.5f * light.g, 0, 1.0f });
@@ -214,22 +215,22 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
 static v2 GetValidSpawnLocation(Map* map) {
     int x = iRand(0, MAP_WIDTH);
     int y = iRand(0, MAP_HEIGHT);
-    
+
     while (map->tiles[y][x].type != TILE_FLOOR) {
         x = iRand(0, MAP_WIDTH);
         y = iRand(0, MAP_HEIGHT);
     }
-    
+
     return (v2) { x + 0.5f, y + 0.5f };
 }
 
 static void GameInit(GameState* gs) {
     *gs = (GameState) {0};
-    
+
     MapInit(&gs->map);
 
     v2 player_pos = GetValidSpawnLocation(&gs->map);
-    
+
     EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_PLAYER, .pos = player_pos, .rad = 0.2f, .life = 1.0f, .powerup = POWERUP_NONE });
     
     for (int i = 0; i < 64; ++i) {
