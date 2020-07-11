@@ -42,9 +42,16 @@ static v3 powerup_colors[] = {
     [POWERUP_CHARGE]    = { 1.0f, 1.0f, 1.0f },
 };
 
+enum EntityFlags_ {
+    ENTITY_FLAG_NONE    =   (0),
+    ENTITY_FLAG_IMPACT  =   (1 << 1),
+};
+
 typedef struct Entity {
     u32         type;
     u32         id;
+
+    u32         flags;
     
     v2          pos;
     v2          vel;
