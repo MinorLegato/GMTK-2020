@@ -22,9 +22,13 @@ static void ParticlesUpdate(ParticleSystem* ps, f32 t) {
     }
 }
 
-static void ParticlesRender(ParticleSystem* ps) {
+static void ParticlesRender(const ParticleSystem* ps, const Map* map) {
     for(int i = 0; i < ps->count; i++) {
-        Particle* p = &ps->particles[i];
-        RenderRect(p->pos, 0.15f, (v2) { p->rad, p->rad }, p->col);
+        const Particle* p       = &ps->particles[i];
+        const Tile*     tile    = &map->tiles[(i32)p->pos.y][(i32)p->pos.x];
+
+        v3 color = v3_Mul(p->col.rgb, tile->light);
+
+        RenderRect(p->pos, 0.15f, (v2) { p->rad, p->rad }, (v4) { color.r, color.g, color.b, 1.0f });
     }
 }
