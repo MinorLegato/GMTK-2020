@@ -25,17 +25,17 @@ static void HandleCollision(GameState* gs, f32 dt) {
     
     for (int i = 0; i < em->count; ++i) {
         Entity* a = &em->array[i];
-
+        
         if (map->tiles[(i32)(a->pos.y + a->rad)][(i32)(a->pos.x)].type == TILE_WALL) { a->vel.y = 0.0f; a->pos.y = ceilf(a->pos.y)  - a->rad; }
         if (map->tiles[(i32)(a->pos.y - a->rad)][(i32)(a->pos.x)].type == TILE_WALL) { a->vel.y = 0.0f; a->pos.y = floorf(a->pos.y) + a->rad; }
         if (map->tiles[(i32)(a->pos.y)][(i32)(a->pos.x - a->rad)].type == TILE_WALL) { a->vel.x = 0.0f; a->pos.x = floorf(a->pos.x)+ a->rad; }
         if (map->tiles[(i32)(a->pos.y)][(i32)(a->pos.x + a->rad)].type == TILE_WALL) { a->vel.x = 0.0f; a->pos.x = ceilf(a->pos.x)  - a->rad; }
-
+        
         for (int j = 0; j < em->count; ++j) {
             if (i == j) continue;
-
+            
             const Entity* b = &em->array[j];
-
+            
             if (EntityIntersect(a, b) && collision_table[a->type][b->type]) {
                 collision_table[a->type][b->type](a, b, dt);
             }
@@ -96,6 +96,15 @@ static void UpdateEntities(GameState* gs, f32 dt) {
             } break;
             case ENTITY_BULLET: {
                 e->life -= dt;
+                for(int loop = 0; loop < 10; loop++) {
+                    Particle p;
+                    p.pos  = e->pos;
+                    p.vel  = v2_Sub(v2_Rand(-5.0f, 5.0f), e->vel);
+                    p.rad  = 0.01f;
+                    p.life = 0.1f;
+                    p.col  = powerup_colors[e->powerup];
+                    ParticleAdd(&gs->particle_system, &p);
+                }
             } break;
             case ENTITY_ENEMY: {
                 v2 next_tile = NextPathToPlayer(map, e->pos.x, e->pos.y);
@@ -142,29 +151,7 @@ static void RenderEntities(EntityManager* em) {
                 RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 1.0f, 0.5f, 0, 1.0f });
             } break;
             case ENTITY_BULLET: {
-                v4 color;
-                switch(e->powerup) {
-                    case POWERUP_NONE: {
-                        color = (v4) { 0.0f, 0.0f, 0.0f, 1.0f };
-                    } break;
-                    case POWERUP_SPEED: {
-                        color = (v4) { 0.0f, 1.0f, 0.0f, 1.0f };
-                    } break;
-                    case POWERUP_SLOW: {
-                        color = (v4) { 0.0f, 0.0f, 1.0f, 1.0f };
-                    } break;
-                    case POWERUP_EXPLOSIVE: {
-                        color = (v4) { 1.0f, 0.0f, 0.0f, 1.0f };
-                    } break;
-                    case POWERUP_FIRE: {
-                        color = (v4) { 1.0f, 1.0f, 0.0f, 1.0f };
-                    } break;
-                    case POWERUP_CHARGE: {
-                        color = (v4) { 1.0f, 1.0f, 1.0f, 1.0f };
-                    } break;
-                }
-                
-                RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, color);
+                RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, powerup_colors[e->powerup]);
             } break;
             case ENTITY_ENEMY: {
                 RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 1.0f, 0.0f, 0.0f, 1.0f });
