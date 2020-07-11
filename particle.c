@@ -10,9 +10,11 @@ static void ParticleRemove(ParticleSystem* ps, i32 index) {
 static void ParticlesUpdate(ParticleSystem* ps, f32 t) {
     for(int i = 0; i < ps->count; i++) {
         Particle* p = &ps->particles[i];
+
         p->pos.x += p->vel.x * t;
         p->pos.y += p->vel.y * t;
         p->life  -= t;
+
         if(p->life <= 0.0f) {
             ParticleRemove(ps, i);
             i--;
@@ -23,6 +25,6 @@ static void ParticlesUpdate(ParticleSystem* ps, f32 t) {
 static void ParticlesRender(ParticleSystem* ps) {
     for(int i = 0; i < ps->count; i++) {
         Particle* p = &ps->particles[i];
-        RenderRect(p->pos, p->size, p->col);
+        RenderRect(p->pos, 0.15f, (v2) { p->rad, p->rad }, p->col);
     }
 }

@@ -1,5 +1,7 @@
 #include "ma_tool.h"
 
+static v3 mouse_world_position;
+
 #include "camera.h"
 #include "map.h"
 #include "entity.h"
@@ -14,12 +16,14 @@
 #include "game.c"
 
 static void RenderMainMenu() {
-    RenderRect((v2) { 0.0f, 0.0f }, (v2) { 1.0f, 1.0f }, (v4) { 255, 0, 0, 255 });
+    RenderRect((v2) { 0.0f, 0.0f }, 0.0f, (v2) { 1.0f, 1.0f }, (v4) { 1.0f, 0.0f, 0.0f, 1.0f });
 }
 
 int main(void) {
-    PlatformInit("GMTK", 1200, 800);
+    PlatformInit("GMTK - 2020", 1200, 800);
     
+    glEnable(GL_DEPTH_TEST);
+
     GameState* gs = calloc(1, sizeof (GameState));
     
     while (!platform.close) {
@@ -31,7 +35,7 @@ int main(void) {
         
         RenderMainMenu();
         
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         PlatformUpdate();
     }

@@ -1,9 +1,8 @@
 
 typedef struct GameState {
-    Camera          cam;
-    EntityManager   em;
-    Map             map;
-    
-    ParticleSystem particle_system;
+    Camera              camera;
+    EntityManager       entity_manager;
+    Map                 map;
+    ParticleSystem      particle_system;
 } GameState;
 

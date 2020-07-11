@@ -89,7 +89,6 @@ typedef union v4 {
     f32 array[4];
 } v4;
 
-
 typedef union m2 {
     struct {
         v2  x;
@@ -119,6 +118,11 @@ typedef union m4 {
 
     f32 array[16];
 } m4;
+
+typedef struct Rect2 {
+    v2      min;
+    v2      max;
+} Rect2;
 
 static f32 rsqrtf(f32 n) {
     return n == 0.0f? 0.0f : 1.0f / sqrtf(n);
@@ -430,7 +434,27 @@ static v3 v3_Spline(f32 f, v3 a, v3 b, v3 c, v3 d) {
     return out;
 }
 
+#define U8_TO_F32_COLOR_MUL (0.00390625f)
+
 // v4:
+static v4 v4_FromRGB(u8 red, u8 green, u8 blue) {
+    return (v4) {
+        .r = red   * U8_TO_F32_COLOR_MUL,
+        .g = green * U8_TO_F32_COLOR_MUL,
+        .b = blue  * U8_TO_F32_COLOR_MUL,
+        .a = 1.0f
+    };
+}
+
+static v4 v4_FromRGBA(u8 red, u8 green, u8 blue, u8 alpha) {
+    return (v4) {
+        .r = red   * U8_TO_F32_COLOR_MUL,
+        .g = green * U8_TO_F32_COLOR_MUL,
+        .b = blue  * U8_TO_F32_COLOR_MUL,
+        .a = alpha * U8_TO_F32_COLOR_MUL,
+    };
+}
+
 static v4 v4_Neg(v4 a) {
     v4 out = { -a.x, -a.y, -a.z, -a.w };
     return out;
@@ -1031,6 +1055,8 @@ struct {
     u8              key_pressed     [GLFW_KEY_LAST + 1];
     u8              key_released    [GLFW_KEY_LAST + 1];
     
+    v2              mouse_position;
+
     u8              mouse_down      [GLFW_MOUSE_BUTTON_LAST + 1];
     u8              mouse_pressed   [GLFW_MOUSE_BUTTON_LAST + 1];
     u8              mouse_released  [GLFW_MOUSE_BUTTON_LAST + 1];
@@ -1097,7 +1123,33 @@ void PlatformUpdate(void) {
         platform.close = true;
     }
 
+    {
+        f64 mouse_x = 0.0f, mouse_y = 0.0f;
+        glfwGetCursorPos(platform.window, &mouse_x, &mouse_y);
+
+        platform.mouse_position = (v2) { mouse_x, mouse_y };
+    }
+
     glfwSwapBuffers(platform.window);
     glfwPollEvents();
 }
 
+static v3 ToWorldPosition(i32 x, int y) {
+    GLint       viewport[4];
+    GLdouble    modelview[16];
+    GLdouble    projection[16];
+    GLfloat     winX, winY, winZ;
+    GLdouble    posX, posY, posZ;
+ 
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+    glGetDoublev(GL_PROJECTION_MATRIX, projection);
+    glGetIntegerv(GL_VIEWPORT, viewport);
+ 
+    winX = (f32)x;
+    winY = (f32)viewport[3] - (f32)y;
+
+    glReadPixels(x, (int)winY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+    gluUnProject(winX, winY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
+ 
+    return (v3) { posX, posY, posZ };
+}
