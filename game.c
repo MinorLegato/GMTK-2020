@@ -170,6 +170,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
             CreateBullet(em, e, e->aim);
             e->cooldown = powerup_cooldowns[e->powerup];
         }
+
         if (e->life <= 0.0f) {
             if(e->type == ENTITY_BULLET) {
                 if(e->powerup == POWERUP_EXPLOSIVE) {
