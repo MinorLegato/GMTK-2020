@@ -204,11 +204,18 @@ static void GameInit(GameState* gs) {
     *gs = (GameState) {0};
     
     MapInit(&gs->map);
+
+    v2 player_pos = GetValidSpawnLocation(&gs->map);
     
-    EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_PLAYER, .pos = GetValidSpawnLocation(&gs->map), .rad = 0.2f, .life = 1.0f, .powerup = POWERUP_NONE });
+    EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_PLAYER, .pos = player_pos, .rad = 0.2f, .life = 1.0f, .powerup = POWERUP_NONE });
     
-    for (int i = 0; i < 16; ++i) {
-        EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_ENEMY, .pos = GetValidSpawnLocation(&gs->map), .rad = 0.2f, .life = 1.0f });
+    for (int i = 0; i < 64; ++i) {
+        v2 enemy_pos = GetValidSpawnLocation(&gs->map);
+
+        while (v2_DistSq(player_pos, enemy_pos) < 8.0f * 8.0f)
+            enemy_pos = GetValidSpawnLocation(&gs->map);
+
+        EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_ENEMY, .pos = enemy_pos, .rad = 0.2f, .life = 1.0f });
     }
 }
 
