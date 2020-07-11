@@ -42,10 +42,10 @@ static void HandleCollision(GameState* gs, f32 dt) {
             if (i == j) continue;
             
             const Entity* b = &em->array[j];
-
+            
             if (a->id == b->owner_id) continue;
             if (a->owner_id == b->id) continue;
-
+            
             if (EntityIntersect(a, b) && collision_table[a->type][b->type]) {
                 collision_table[a->type][b->type](a, b, dt);
             }
@@ -75,7 +75,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
     
     static f32 powerup_switch_cooldown = 1.0f;
     powerup_switch_cooldown -= dt;
-
+    
     for (int i = 0; i < em->count; ++i) {
         Entity* e = &em->array[i];
         
@@ -214,7 +214,7 @@ static void GameRun(GameState* gs) {
     
     ParticleAdd(&gs->particle_system, &particle);
     
-    while (game_running) {
+    while (game_running && !platform.close) {
         f32 dt = platform.time_delta;
         
         if (platform.key_pressed[GLFW_KEY_ESCAPE]) {
