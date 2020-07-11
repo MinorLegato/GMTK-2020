@@ -45,6 +45,15 @@ typedef union v2 {
     f32 array[2];
 } v2;
 
+typedef union v2i {
+    struct {
+        i32     x;
+        i32     y;
+    };
+
+    i32 array[2];
+} v2i;
+
 typedef union v3 {
     struct {
         f32     x;

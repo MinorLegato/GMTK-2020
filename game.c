@@ -1,6 +1,6 @@
 
 static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
-    Entity p;
+    Entity p = {0};
     p.type = ENTITY_BULLET;
     p.pos = v2_Add(e->pos, v2_Scale(aim, 0.1f));
     p.rad = 0.1f;
@@ -50,7 +50,10 @@ static void UpdateEntities(GameState* gs, f32 dt) {
             } break;
             case ENTITY_BULLET: {
                 e->life -= dt;
-            }
+            } break;
+            case ENTITY_ENEMY: {
+                AddLight(map, e->pos.x, e->pos.y, (v3) { 0.8f, 0.0f, 0.1f });
+            } break;
         }
         
         EntityUpdate(e, dt);
@@ -92,6 +95,11 @@ static void RenderEntities(EntityManager* em) {
                 }
                 RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, color);
             }
+                RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 1.0f, 1.0f, 1.0f, 1.0f });
+            } break;
+            case ENTITY_ENEMY: {
+                RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 1.0f, 0.0f, 0.0f, 1.0f });
+            } break;
         }
     }
 }
@@ -99,10 +107,11 @@ static void RenderEntities(EntityManager* em) {
 static void GameInit(GameState* gs) {
     *gs = (GameState) {0};
     
-    EntityAdd(&gs->entity_manager,
-              &(Entity) {
-                  .type = ENTITY_PLAYER, .pos = { 0.5f * MAP_WIDTH, 0.5f * MAP_HEIGHT }, .rad = 0.2f, .life = 1.0f, .powerup = POWERUP_NONE
-              });
+    EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_PLAYER, .pos = { 0.5f * MAP_WIDTH, 0.5f * MAP_HEIGHT }, .rad = 0.2f, .life = 1.0f });
+
+    for (int i = 0; i < 16; ++i) {
+        EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_ENEMY, .pos = { fRand(0, MAP_WIDTH), fRand(0, MAP_HEIGHT) }, .rad = 0.2f, .life = 1.0f });
+    }
     
     MapInit(&gs->map);
 }
@@ -171,3 +180,4 @@ static void GameRun(GameState* gs) {
         PlatformUpdate();
     }
 }
+
