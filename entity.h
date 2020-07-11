@@ -21,7 +21,7 @@ enum BulletPowers_ {
     POWERUP_MELEE,
     POWERUP_EXPLOSIVE,
     POWERUP_FIRE,
-    POWERUP_CHARGE,
+    POWERUP_SHOTGUN,
     POWERUP_COUNT
 };
 
@@ -31,7 +31,7 @@ static f32 powerup_cooldowns[] = {
     [POWERUP_MELEE]      = 0.2f,
     [POWERUP_EXPLOSIVE]  = 0.5f,
     [POWERUP_FIRE]       = 0.2f,
-    [POWERUP_CHARGE]     = 0.2f,
+    [POWERUP_SHOTGUN]    = 0.3f,
 };
 
 static v3 powerup_colors[] = {
@@ -39,7 +39,7 @@ static v3 powerup_colors[] = {
     [POWERUP_SPEED]     = { 0.0f, 1.0f, 0.0f },
     [POWERUP_EXPLOSIVE] = { 1.0f, 0.0f, 0.0f },
     [POWERUP_FIRE]      = { 1.0f, 1.0f, 0.0f },
-    [POWERUP_CHARGE]    = { 1.0f, 1.0f, 1.0f },
+    [POWERUP_SHOTGUN]   = { 1.0f, 1.0f, 1.0f },
 };
 
 enum EntityFlags_ {

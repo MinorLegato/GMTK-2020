@@ -90,17 +90,21 @@ static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
     }
     else {
         f32 speed = 5.0f;
-        if (e->powerup == POWERUP_SPEED) speed = 10.0f;
-        Entity p = {
-            .type = ENTITY_BULLET,
-            .pos = v2_Add(e->pos, v2_Scale(aim, 0.1f)),
-            .rad = 0.1f,
-            .life = 1.0f,
-            .powerup = e->powerup,
-            .owner_id  = e->id,
-            .vel = v2_Add(v2_Scale(aim, speed), e->vel),
-        };
-        EntityAdd(em, &p);
+        i32 loop  = 1;
+        if (e->powerup == POWERUP_SPEED)        speed = 10.0f;
+        else if (e->powerup == POWERUP_SHOTGUN) loop  = 3;
+        for(int i = 0; i < loop; i++) {
+            Entity p = {
+                .type = ENTITY_BULLET,
+                .pos = v2_Add(e->pos, v2_Scale(aim, 0.1f)),
+                .rad = 0.1f,
+                .life = 1.0f,
+                .powerup = e->powerup,
+                .owner_id  = e->id,
+                .vel = v2_Add(v2_Add(v2_Scale(aim, speed), e->vel), v2_Rand(-1.0f, 1.0f)),
+            };
+            EntityAdd(em, &p);
+        }
     }
 }
 
@@ -131,9 +135,9 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 }
                 
                 v2 mouse_vec = v2_Sub(mouse_world_position.xy, e->pos);
-
+                
                 e->aim = v2_Scale(v2_Norm(mouse_vec),
-                        fClamp(fLerp(0.5, 1.0f, 1.0f - e->cooldown / powerup_cooldowns[e->powerup]), 0.5f, 1.0f));
+                                  fClamp(fLerp(0.5, 1.0f, 1.0f - e->cooldown / powerup_cooldowns[e->powerup]), 0.5f, 1.0f));
                 
                 if (platform.mouse_down[GLFW_MOUSE_BUTTON_LEFT] && e->cooldown <= 0.0f) {
                     shoot       = true;
@@ -145,7 +149,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                     if(e->powerup == POWERUP_MELEE) {
                         ParticleExplosion(&gs->particle_system, v2_Add(e->pos, v2_Scale(e->aim, 0.5f)), 0.05f, 20, 5.0f);
                     }
-
+                    
                     e->cooldown = powerup_cooldowns[e->powerup];
                 }
                 
@@ -228,6 +232,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
         e->cooldown -= dt;
         if(e->type != ENTITY_BULLET && powerup_switch_cooldown <= 0.0f) {
             e->powerup = iRand(0, POWERUP_COUNT);
+            //e->powerup = POWERUP_SHOTGUN;
         }
     }
     if(powerup_switch_cooldown <= 0.0f) {
