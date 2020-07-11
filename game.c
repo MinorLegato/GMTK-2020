@@ -228,17 +228,19 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
         const Tile*     tile = &map->tiles[(int)e->pos.y][(int)e->pos.x];
         
         v3 light = tile->light;
+
+        f32 speed = v2_Len(e->vel);
         
         switch (e->type) {
             case ENTITY_PLAYER: {
-                RenderTexture(player_texture, (v3) { e->pos.x, e->pos.y, 0.1f }, e->rad, 0.0f, (v4) { light.r, light.g, light.b, 1.0f });
+                RenderTexture(player_texture, (v3) { e->pos.x, e->pos.y, 0.1f }, e->rad, 0.1f * sinf(speed * platform.time_total), (v4) { light.r, light.g, light.b, 1.0f });
             } break;
             case ENTITY_BULLET: {
                 v3 color = v3_Mul(powerup_colors[e->powerup], light);
                 RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { color.r, color.g, color.b, 1.0f });
             } break;
             case ENTITY_ENEMY: {
-                RenderTexture(zombie_texture, (v3) { e->pos.x, e->pos.y, 0.1f }, e->rad, 0.0f, (v4) { light.r, light.g, light.b, 1.0f });
+                RenderTexture(zombie_texture, (v3) { e->pos.x, e->pos.y, 0.1f }, e->rad, 0.1f * sinf(speed * platform.time_total), (v4) { light.r, light.g, light.b, 1.0f });
             } break;
             case ENTITY_CORPSE: {
                 RenderTexture(zombie_texture, (v3) { e->pos.x, e->pos.y, 0.1f }, e->rad, 0.5f * PI, (v4) { 0.7f * light.r, 0.5f * light.g, 0.5f * light.b, 1.0f });
