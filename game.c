@@ -54,6 +54,13 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 e->life -= dt;
             } break;
             case ENTITY_ENEMY: {
+                v2 next_tile = NextPathToPlayer(map, e->pos.x, e->pos.y);
+
+                v2 acc = v2_Sub(next_tile, e->pos);
+
+                EntityFriction(e, 4.0f);
+                EntityApply(e, v2_Scale(acc, 8.0f));
+
                 AddLight(map, e->pos.x, e->pos.y, (v3) { 0.8f, 0.0f, 0.1f });
             } break;
         }

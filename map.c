@@ -146,3 +146,12 @@ static void UpdatePathToPlayer(Map* map, int player_x, int player_y) {
     }
 }
 
+static v2 NextPathToPlayer(Map* map, int x, int y) {
+    int next_tile = map->path_to_player[y][x];
+
+    int nx = next_tile % MAP_WIDTH;
+    int ny = next_tile / MAP_HEIGHT;
+
+    return (v2) { nx + 0.5f, ny + 0.5f };
+}
+
