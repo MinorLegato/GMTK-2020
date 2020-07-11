@@ -61,6 +61,8 @@ static void MapUpdate(Map* map, ParticleSystem* ps, f32 dt) {
             if (tile->fire > 0.0f) {
                 tile->fire -= dt;
 
+                AddLight(map, x, y, (v3) { 1.0f, 1.0f, 0.0f });
+
                 for (int i = 0; i < 4; ++i) {
                     int nx = x + (int[]) { -1, 1, 0, 0 } [i];
                     int ny = y + (int[]) { 0, 0, -1, 1 } [i];
