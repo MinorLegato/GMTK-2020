@@ -17,6 +17,8 @@ static void UpdateEntities(GameState* gs, f32 dt) {
     EntityManager*  em  = &gs->entity_manager;
     Map*            map = &gs->map;
     
+    static f32 powerup_switch_cooldown = 1.0f;
+    powerup_switch_cooldown -= dt;
     for (int i = 0; i < em->count; ++i) {
         Entity* e = &em->array[i];
         
@@ -60,6 +62,12 @@ static void UpdateEntities(GameState* gs, f32 dt) {
         if(shoot) CreateBullet(em, e, e->aim);
         if(e->life <= 0.0f) EntityRemove(em, i);
         e->cooldown -= dt;
+        if(e->type != ENTITY_BULLET && powerup_switch_cooldown <= 0.0f) {
+            e->powerup = iRand(0, POWERUP_COUNT);
+        }
+    }
+    if(powerup_switch_cooldown <= 0.0f) {
+        powerup_switch_cooldown = 1.0f;
     }
 }
 
