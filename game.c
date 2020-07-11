@@ -34,7 +34,7 @@ static CollisionFunc* collision_table[ENTITY_COUNT][ENTITY_COUNT] = {
     [ENTITY_CORPSE][ENTITY_ENEMY]   = PushCollision,
     [ENTITY_CORPSE][ENTITY_CORPSE]  = PushCollision,
     //area collision:
-    [ENTITY_ENEMY][ENTITY_AREA_DMG] = DamageCollision,
+    [ENTITY_ENEMY][ENTITY_AREA_DMG] = KillCollision,
 };
 
 static void HandleCollision(GameState* gs, f32 dt) {
@@ -231,17 +231,17 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
         
         switch (e->type) {
             case ENTITY_PLAYER: {
-                RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 1.0f * light.r, 0.5f * light.g, 0, 1.0f });
+                RenderTexture(player_texture, (v3) { e->pos.x, e->pos.y, 0.1f }, e->rad, 0.0f, (v4) { light.r, light.g, light.b, 1.0f });
             } break;
             case ENTITY_BULLET: {
                 v3 color = v3_Mul(powerup_colors[e->powerup], light);
                 RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { color.r, color.g, color.b, 1.0f });
             } break;
             case ENTITY_ENEMY: {
-                RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 1.0f * light.r, 0.0f, 0.0f, 1.0f });
+                RenderTexture(zombie_texture, (v3) { e->pos.x, e->pos.y, 0.1f }, e->rad, 0.0f, (v4) { light.r, light.g, light.b, 1.0f });
             } break;
             case ENTITY_CORPSE: {
-                RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 0.0f, 0.0f, 1.0f * light.r, 1.0f });
+                RenderTexture(zombie_texture, (v3) { e->pos.x, e->pos.y, 0.1f }, e->rad, 0.5f * PI, (v4) { 0.7f * light.r, 0.5f * light.g, 0.5f * light.b, 1.0f });
             } break;
         }
         

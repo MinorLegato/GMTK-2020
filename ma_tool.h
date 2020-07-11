@@ -34,6 +34,12 @@ typedef unsigned long long  b64;
 #define PI  (3.14159265359f)
 #endif
 
+#define TO_RAD_MUL  (0.01745329251f)
+#define TO_DEG_MUL  (57.2957795131f)
+
+#define TO_RAD(deg) ((deg) * TO_RAD_MUL)
+#define TO_DEG(rad) ((rad) * TO_DEG_MUL)
+
 #define ARRAY_COUNT(array) (sizeof (array) / sizeof (array[0]))
 
 typedef union v2 {

@@ -2,6 +2,9 @@
 
 static v3 mouse_world_position;
 
+#include "player_texture.c"
+#include "zombie_texture.c"
+
 #include "camera.h"
 #include "map.h"
 #include "entity.h"
@@ -27,6 +30,9 @@ int main(void) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     BitmapInit();
+
+    player_texture = TextureCreate((unsigned char*)player_pixel_data, PLAYER_FRAME_WIDTH, PLAYER_FRAME_HEIGHT, false);
+    zombie_texture = TextureCreate((unsigned char*)zombie_pixel_data, ZOMBIE_FRAME_WIDTH, ZOMBIE_FRAME_HEIGHT, false);
 
     GameState* gs = calloc(1, sizeof (GameState));
     
