@@ -1,6 +1,6 @@
 
 static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
-    Entity p;
+    Entity p = {0};
     p.type = ENTITY_BULLET;
     p.pos = v2_Add(e->pos, v2_Scale(aim, 0.1f));
     p.rad = 0.1f;
@@ -49,7 +49,10 @@ static void UpdateEntities(GameState* gs, f32 dt) {
             } break;
             case ENTITY_BULLET: {
                 e->life -= dt;
-            }
+            } break;
+            case ENTITY_ENEMY: {
+                // DO EVIL:
+            } break;
         }
         
         EntityUpdate(e, dt);
