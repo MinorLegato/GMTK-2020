@@ -132,6 +132,8 @@ static void RenderTexture(Texture texture, v3 pos, f32 rad, f32 rot, v4 color) {
 
 static Texture player_texture;
 static Texture zombie_texture;
+static Texture gun_texture;
+static Texture knife_texture;
 
 #define BITMAP_COUNT    (256)
 

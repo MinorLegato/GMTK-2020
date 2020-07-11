@@ -16,6 +16,7 @@ static Particle CreateParticle(v2 pos, v2 vel, f32 rad, f32 life, v3 col) {
         .max_life = life,
         .col.rgb  = col
     };
+
     return p;
 }
 
@@ -53,7 +54,7 @@ static void ParticlesUpdate(ParticleSystem* ps, f32 t) {
         p->pos.y += p->vel.y * t;
         p->life  -= t;
         
-        if(p->life <= 0.0f) {
+        if (p->life <= 0.0f) {
             ParticleRemove(ps, i);
             i--;
         }
@@ -67,6 +68,6 @@ static void ParticlesRender(const ParticleSystem* ps, const Map* map) {
         
         v3 color = v3_Mul(p->col.rgb, tile->light);
         
-        RenderRect(p->pos, 0.15f, (v2) { p->rad, p->rad }, (v4) { color.r, color.g, color.b, p->life / p->max_life });
+        RenderRect(p->pos, 0.5f, (v2) { p->rad, p->rad }, (v4) { color.r, color.g, color.b, p->life / p->max_life });
     }
 }

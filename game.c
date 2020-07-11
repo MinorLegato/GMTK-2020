@@ -131,10 +131,11 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 }
                 
                 v2 mouse_vec = v2_Sub(mouse_world_position.xy, e->pos);
+
+                e->aim  = v2_Norm(mouse_vec);
                 
                 if (platform.mouse_down[GLFW_MOUSE_BUTTON_LEFT] && e->cooldown <= 0.0f) {
                     shoot   = true;
-                    e->aim  = v2_Norm(mouse_vec);
                     
                     cam->shake += 0.1f;
                 }
@@ -244,14 +245,23 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
         
         switch (e->type) {
             case ENTITY_PLAYER: {
-                RenderTexture(player_texture, (v3) { e->pos.x, e->pos.y, 0.1f }, e->rad, 0.1f * sinf(speed * platform.time_total), (v4) { light.r, light.g, light.b, 1.0f });
+                v3 player_pos = { e->pos.x, e->pos.y, 0.3f } ;
+                v3 weapon_pos = v3_Add(player_pos, (v3) { .xy = v2_Scale(e->aim, 0.4f), ._z = 0.1f });
+
+                RenderTexture(player_texture, player_pos, e->rad, 0.1f * sinf(speed * platform.time_total),  (v4) { light.r, light.g, light.b, 1.0f });
+
+                if (e->powerup != POWERUP_MELEE) {
+                    RenderTexture(gun_texture, weapon_pos, e->rad, v2_GetAngle((v2) { -1.0f, 0.0f }, e->aim), (v4) { light.r, light.g, light.b, 1.0f });
+                } else {
+                    RenderTexture(knife_texture, weapon_pos, e->rad, v2_GetAngle((v2) { -1.0f, 0.0f }, e->aim), (v4) { light.r, light.g, light.b, 1.0f });
+                }
             } break;
             case ENTITY_BULLET: {
                 v3 color = v3_Mul(powerup_colors[e->powerup], light);
-                RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { color.r, color.g, color.b, 1.0f });
+                RenderRect(e->pos, 0.3f, (v2) { e->rad, e->rad }, (v4) { color.r, color.g, color.b, 1.0f });
             } break;
             case ENTITY_ENEMY: {
-                RenderTexture(zombie_texture, (v3) { e->pos.x, e->pos.y, 0.1f }, e->rad, 0.1f * sinf(speed * platform.time_total), (v4) { light.r, light.g, light.b, 1.0f });
+                RenderTexture(zombie_texture, (v3) { e->pos.x, e->pos.y, 0.3f }, e->rad, 0.1f * sinf(speed * platform.time_total), (v4) { light.r, light.g, light.b, 1.0f });
             } break;
             case ENTITY_CORPSE: {
                 RenderTexture(zombie_texture, (v3) { e->pos.x, e->pos.y, 0.1f }, e->rad, 0.5f * PI, (v4) { 0.7f * light.r, 0.5f * light.g, 0.5f * light.b, 1.0f });
