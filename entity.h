@@ -9,6 +9,7 @@ enum EntityType_ {
     ENTITY_ENEMY,
     ENTITY_CORPSE,
     ENTITY_BULLET,
+    ENTITY_AREA_DMG,
     ENTITY_COUNT
 };
 
@@ -51,7 +52,7 @@ enum EntityFlags_ {
 typedef struct Entity {
     u32         type;
     u32         id;
-
+    
     u32         flags;
     
     v2          pos;

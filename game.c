@@ -5,7 +5,7 @@ static void PushCollision(Entity* a, const Entity* b, f32 dt) {
 
 static void DamageCollision(Entity* a, const Entity* b, f32 dt) {
     EntityPush(a, v2_Scale(v2_Norm(b->vel), 2.0));
-
+    
     a->life -= 1.0f;
 }
 
@@ -33,19 +33,21 @@ static CollisionFunc* collision_table[ENTITY_COUNT][ENTITY_COUNT] = {
     [ENTITY_CORPSE][ENTITY_PLAYER]  = PushCollision,
     [ENTITY_CORPSE][ENTITY_ENEMY]   = PushCollision,
     [ENTITY_CORPSE][ENTITY_CORPSE]  = PushCollision,
+    //area collision:
+    [ENTITY_ENEMY][ENTITY_AREA_DMG] = DamageCollision,
 };
 
 static void HandleCollision(GameState* gs, f32 dt) {
     EntityManager*  em  = &gs->entity_manager;
     Map*            map = &gs->map;
-
+    
     for (int i = 0; i < em->count; ++i) {
         Entity* a = &em->array[i];
-
+        
         a->flags = a->flags & ~(ENTITY_FLAG_IMPACT | ENTITY_FLAG_DAMAGE);
-
+        
         b32 impact = false;
-
+        
         if ((a->pos.x - a->rad) < 0)            { impact = true; a->pos.x = a->rad; }
         if ((a->pos.y - a->rad) < 0)            { impact = true; a->pos.y = a->rad; }
         if ((a->pos.x + a->rad) >= MAP_WIDTH)   { impact = true; a->pos.x = MAP_WIDTH  - a->rad; }
@@ -57,7 +59,7 @@ static void HandleCollision(GameState* gs, f32 dt) {
         if (map->tiles[(i32)(a->pos.y)][(i32)(a->pos.x + a->rad)].type == TILE_WALL) { impact = true; a->vel.x = 0.0f; a->pos.x = ceilf(a->pos.x)  - a->rad; }
         
         f32 life = a->life;
-
+        
         for (int j = 0; j < em->count; ++j) {
             if (i == j) continue;
             
@@ -65,17 +67,17 @@ static void HandleCollision(GameState* gs, f32 dt) {
             
             if (a->id == b->owner_id) continue;
             if (a->owner_id == b->id) continue;
-
+            
             if (EntityIntersect(a, b) && collision_table[a->type][b->type]) {
                 impact = true;
                 collision_table[a->type][b->type](a, b, dt);
             }
         }
-
+        
         if (life != a->life) {
             a->flags |= ENTITY_FLAG_DAMAGE;
         }
-
+        
         if (impact) {
             a->flags |= ENTITY_FLAG_IMPACT;
         }
@@ -118,51 +120,51 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 if (platform.key_down[GLFW_KEY_S]) acc.y -= 1.0f;
                 if (platform.key_down[GLFW_KEY_A]) acc.x -= 1.0f;
                 if (platform.key_down[GLFW_KEY_D]) acc.x += 1.0f;
-
+                
                 if (platform.key_pressed[GLFW_KEY_SPACE]) {
                     EntityPush(e, v2_Scale(v2_Norm(acc), 4.0f));
                 }
-
+                
                 v2 mouse_vec = v2_Sub(mouse_world_position.xy, e->pos);
-
+                
                 if (platform.mouse_down[GLFW_MOUSE_BUTTON_LEFT] && e->cooldown <= 0.0f) {
                     shoot   = true;
                     e->aim  = v2_Norm(mouse_vec);
-
+                    
                     cam->shake += 0.1f;
                 }
-
+                
                 if (shoot) {
                     CreateBullet(em, e, e->aim);
                     e->cooldown = powerup_cooldowns[e->powerup];
                 }
-
-
+                
+                
                 EntityFriction(e, 4.0f);
                 EntityApply(e, v2_Scale(v2_Norm(acc), 8.0f));
-
+                
                 AddLight(map, e->pos.x, e->pos.y, (v3) { 0.8f, 0.8f, 0.0f });
-
+                
                 cam->target = (v3) {
                     .xy = v2_Add(v2_Add(e->pos, v2_Scale(e->vel, 0.8f)), v2_Scale(mouse_vec, 0.3f)),
-                        ._z = 12.0f + fClampMax(v2_Len(e->vel), 4.0f),
+                    ._z = 12.0f + fClampMax(v2_Len(e->vel), 4.0f),
                 };
-
+                
                 UpdatePathToPlayer(map, e->pos.x, e->pos.y);
             } break;
             case ENTITY_BULLET: {
                 if (e->flags & ENTITY_FLAG_IMPACT) {
                     for (int i = 0; i < 32; ++i) {
                         Particle p = CreateParticle(e->pos, v2_Rand(-2.0f, 2.0f), 0.02f, 0.5f, powerup_colors[e->powerup]);
-
+                        
                         ParticleAdd(&gs->particle_system, &p);
                     }
-
+                    
                     e->life = 0.0f;
                 }
-
+                
                 e->life -= dt;
-
+                
                 for(int loop = 0; loop < 10; loop++) {
                     Particle p = CreateParticle(e->pos, v2_Sub(v2_Rand(-5.0f, 5.0f), e->vel), 0.01f, 0.1f, powerup_colors[e->powerup]);
                     ParticleAdd(&gs->particle_system, &p);
@@ -170,16 +172,16 @@ static void UpdateEntities(GameState* gs, f32 dt) {
             } break;
             case ENTITY_ENEMY: {
                 v2 next_tile = NextPathToPlayer(map, e->pos.x, e->pos.y);
-
+                
                 v2 dir = v2_Norm(v2_Sub(next_tile, e->pos));
-
+                
                 EntityFriction(e, 4.0f);
                 EntityApply(e, v2_Scale(dir, 6.0f));
-
+                
                 AddLight(map, e->pos.x, e->pos.y, (v3) { 0.8f, 0.0f, 0.1f });
                 Entity* player = &em->array[0];
                 v2 dist_vec = v2_Sub(player->pos, e->pos);
-
+                
                 if (e->cooldown <= 0.0f && v2_Len(dist_vec) < 2.0f) {
                     shoot = true;
                     e->aim = v2_Norm(dist_vec);
@@ -191,22 +193,23 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 e->life -= dt;
             }
         }
-
+        
         EntityUpdate(e, dt);
-
+        
         if (e->life <= 0.0f) {
             if(e->type == ENTITY_BULLET) {
                 if(e->powerup == POWERUP_EXPLOSIVE) {
-                    ParticleExplosion(&gs->particle_system, e->pos, 0.05f, 100, 5.0f);
+                    ParticleExplosion(&gs->particle_system, e->pos, 0.05f, 1000, 5.0f);
+                    EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_AREA_DMG, .pos = e->pos, .rad = 1.0f, .life = 0.0f });
                 }
             }
             else if(e->type == ENTITY_CORPSE) {
                 BloodExplosion(&gs->particle_system, e, 100);
             }
-            else {
+            else if(e->type == ENTITY_PLAYER || e->type == ENTITY_ENEMY) {
                 EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_CORPSE, .pos = e->pos, .aim = e->vel, .rad = e->rad, .life = 2.0f });
             }
-
+            
             EntityRemove(em, i);
         }
         e->cooldown -= dt;
@@ -223,9 +226,9 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
     for (int i = 0; i < em->count; ++i) {
         const Entity*   e    = &em->array[i];
         const Tile*     tile = &map->tiles[(int)e->pos.y][(int)e->pos.x];
-
+        
         v3 light = tile->light;
-
+        
         switch (e->type) {
             case ENTITY_PLAYER: {
                 RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 1.0f * light.r, 0.5f * light.g, 0, 1.0f });
@@ -241,35 +244,35 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
                 RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 0.0f, 0.0f, 1.0f * light.r, 1.0f });
             } break;
         }
-
+        
         if (e->flags & ENTITY_FLAG_DAMAGE) {
             RenderRect(e->pos, 0.11f, (v2) { e->rad, e->rad }, (v4) { light.r, light.g, light.b, 1.0f });
         }
-
+        
     }
 }
 
 static v2 GetValidSpawnLocation(Map* map) {
     int x = iRand(0, MAP_WIDTH);
     int y = iRand(0, MAP_HEIGHT);
-
+    
     while (map->tiles[y][x].type != TILE_FLOOR) {
         x = iRand(0, MAP_WIDTH);
         y = iRand(0, MAP_HEIGHT);
     }
-
+    
     return (v2) { x + 0.5f, y + 0.5f };
 }
 
 static void GameInit(GameState* gs) {
     *gs = (GameState) {0};
-
+    
     MapInit(&gs->map);
     
     v2 player_pos = GetValidSpawnLocation(&gs->map);
-
+    
     gs->camera.current.xy = player_pos;
-
+    
     EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_PLAYER, .pos = player_pos, .rad = 0.2f, .life = 10.0f, .powerup = POWERUP_NONE });
     
     for (int i = 0; i < 64; ++i) {
@@ -297,41 +300,41 @@ static void GameRun(GameState* gs) {
         if (platform.key_pressed[GLFW_KEY_R]) {
             GameInit(gs);
         }
-  
+        
         {
             static f32 enemy_spawn_cooldown = 0.0f;
-
+            
             EntityManager* em = &gs->entity_manager;
-
+            
             if (em->array[0].type == ENTITY_PLAYER && (enemy_spawn_cooldown -= dt) <= 0.0f) {
                 enemy_spawn_cooldown = 8.0f;
-
+                
                 v2 player_pos = em->array[0].pos;
-
+                
                 for (int i = 0; i < 64; ++i) {
                     v2 enemy_pos = GetValidSpawnLocation(&gs->map);
-
+                    
                     while (v2_DistSq(player_pos, enemy_pos) < 12.0f * 12.0f)
                         enemy_pos = GetValidSpawnLocation(&gs->map);
-
+                    
                     EntityAdd(em, &(Entity) { .type = ENTITY_ENEMY, .pos = enemy_pos, .rad = 0.2f, .life = 2.0f });
                 }
             }
         }
-       
+        
         MapUpdate(&gs->map, dt);
         
         AddLight(&gs->map, mouse_world_position.x, mouse_world_position.y, (v3) { 0.5f, 0.0f, 0.5f });
         
         HandleCollision(gs, dt);
-
+        
         UpdateEntities(gs, dt);
         
         ParticlesUpdate(&gs->particle_system, dt);
         CameraUpdate(&gs->camera, dt);
         
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+        
         // camera:
         {
             Camera* cam = &gs->camera;
@@ -352,22 +355,22 @@ static void GameRun(GameState* gs) {
         MapRender(&gs->map);
         
         mouse_world_position = ToWorldPosition(
-                                    iClamp(platform.mouse_position.x, 0, platform.width - 1),
-                                    iClamp(platform.mouse_position.y, 1, platform.height));
+                                               iClamp(platform.mouse_position.x, 0, platform.width - 1),
+                                               iClamp(platform.mouse_position.y, 1, platform.height));
         
         RenderEntities(&gs->entity_manager, &gs->map);
         ParticlesRender(&gs->particle_system, &gs->map);
         
         {
             Camera* cam = &gs->camera;
-
+            
             glDisable(GL_DEPTH_TEST);
-
+            
             RenderStringFormat(cam->current.x - 8.0f, cam->current.y + 6.0f, 0.0f, 0.2f, -0.2f, 1.0f, 1.0f, 1.0f, 1.0f, "ms: %f", 1000.0f * dt);
-
+            
             glEnable(GL_DEPTH_TEST);
         }
-
+        
         PlatformUpdate();
     }
 }
