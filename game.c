@@ -301,15 +301,6 @@ static void GameInit(GameState* gs) {
     gs->camera.current.xy = player_pos;
     
     EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_PLAYER, .pos = player_pos, .rad = 0.2f, .life = 10.0f, .powerup = POWERUP_NONE });
-    
-    for (int i = 0; i < 64; ++i) {
-        v2 enemy_pos = GetValidSpawnLocation(&gs->map);
-        
-        while (v2_DistSq(player_pos, enemy_pos) < 12.0f * 12.0f)
-            enemy_pos = GetValidSpawnLocation(&gs->map);
-        
-        EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_ENEMY, .pos = enemy_pos, .rad = 0.2f, .life = 2.0f });
-    }
 }
 
 static void GameRun(GameState* gs) {
@@ -328,6 +319,9 @@ static void GameRun(GameState* gs) {
             GameInit(gs);
         }
         
+        if (platform.mouse_pressed[GLFW_MOUSE_BUTTON_RIGHT])
+            gs->map.tiles[(int)mouse_world_position.y][(int)mouse_world_position.x].heat = 4.0f;
+
         {
             static f32 enemy_spawn_cooldown = 0.0f;
             
@@ -349,7 +343,7 @@ static void GameRun(GameState* gs) {
             }
         }
         
-        MapUpdate(&gs->map, dt);
+        MapUpdate(&gs->map, &gs->particle_system, dt);
         
         AddLight(&gs->map, mouse_world_position.x, mouse_world_position.y, (v3) { 0.5f, 0.0f, 0.5f });
         

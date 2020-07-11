@@ -2,6 +2,8 @@
 #define MAP_WIDTH   (32)
 #define MAP_HEIGHT  (32)
 
+typedef struct ParticleSystem ParticleSystem;
+
 typedef u32 TileType;
 enum {
     TILE_NONE,
@@ -13,6 +15,9 @@ enum {
 typedef struct Tile {
     TileType    type;
     v3          light;
+
+    f32         heat;
+    f32         fire;
 } Tile;
 
 typedef struct Map {
@@ -23,5 +28,5 @@ typedef struct Map {
 
 static void MapInit     (Map* map);
 static void MapRender   (Map* map);
-static void MapUpdate   (Map* map, f32 dt);
+static void MapUpdate   (Map* map, ParticleSystem* ps, f32 dt);
 

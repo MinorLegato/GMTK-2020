@@ -16,3 +16,6 @@ typedef struct ParticleSystem {
     i32         count;
     Particle    particles[PARTICLE_MAX];
 } ParticleSystem;
+
+static void ParticleAdd(ParticleSystem* ps, const Particle* p);
+
