@@ -25,7 +25,9 @@ int main(void) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
+
+    BitmapInit();
+
     GameState* gs = calloc(1, sizeof (GameState));
     
     while (!platform.close) {
@@ -35,9 +37,11 @@ int main(void) {
         if (platform.key_pressed[GLFW_KEY_ESCAPE])
             platform.close = true;
         
-        RenderMainMenu();
-        
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        RenderMainMenu();
+
+        RenderStringFormat(0.0f, 0.0f, -0.1f, 0.05f, -0.05f, 1.0f, 1.0f, 1.0f, 1.0f, "Hello, world!");
         
         PlatformUpdate();
     }

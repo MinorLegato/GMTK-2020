@@ -24,6 +24,7 @@ static CollisionFunc* collision_table[ENTITY_COUNT][ENTITY_COUNT] = {
     // bullet collision:
     [ENTITY_BULLET][ENTITY_PLAYER]  = KillCollision,
     [ENTITY_BULLET][ENTITY_ENEMY]   = KillCollision,
+    [ENTITY_BULLET][ENTITY_BULLET]  = KillCollision,
 };
 
 static void HandleCollision(GameState* gs, f32 dt) {
@@ -32,7 +33,7 @@ static void HandleCollision(GameState* gs, f32 dt) {
     
     for (int i = 0; i < em->count; ++i) {
         Entity* a = &em->array[i];
-        
+
         if ((a->pos.x - a->rad) < 0)            a->pos.x = a->rad;
         if ((a->pos.y - a->rad) < 0)            a->pos.y = a->rad;
         if ((a->pos.x + a->rad) >= MAP_WIDTH)   a->pos.x = MAP_WIDTH  - a->rad;
@@ -50,7 +51,7 @@ static void HandleCollision(GameState* gs, f32 dt) {
             
             if (a->id == b->owner_id) continue;
             if (a->owner_id == b->id) continue;
-            
+
             if (EntityIntersect(a, b) && collision_table[a->type][b->type]) {
                 collision_table[a->type][b->type](a, b, dt);
             }
@@ -94,6 +95,10 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 if (platform.key_down[GLFW_KEY_S]) acc.y -= 1.0f;
                 if (platform.key_down[GLFW_KEY_A]) acc.x -= 1.0f;
                 if (platform.key_down[GLFW_KEY_D]) acc.x += 1.0f;
+
+                if (platform.key_pressed[GLFW_KEY_SPACE]) {
+                    EntityPush(e, v2_Scale(v2_Norm(acc), 4.0f));
+                }
                 
                 v2 mouse_vec = v2_Sub(mouse_world_position.xy, e->pos);
                 
@@ -111,7 +116,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 
                 cam->target = (v3) {
                     .xy = v2_Add(v2_Add(e->pos, v2_Scale(e->vel, 0.8f)), v2_Scale(mouse_vec, 0.3f)),
-                    ._z = 12.0f + fClampMax(v2_Len(e->vel), 16.0f),
+                    ._z = 12.0f + fClampMax(v2_Len(e->vel), 4.0f),
                 };
                 
                 UpdatePathToPlayer(map, e->pos.x, e->pos.y);
