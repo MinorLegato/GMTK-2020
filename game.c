@@ -71,9 +71,11 @@ static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
 static void UpdateEntities(GameState* gs, f32 dt) {
     EntityManager*  em  = &gs->entity_manager;
     Map*            map = &gs->map;
+    Camera*         cam = &gs->camera;
     
     static f32 powerup_switch_cooldown = 1.0f;
     powerup_switch_cooldown -= dt;
+
     for (int i = 0; i < em->count; ++i) {
         Entity* e = &em->array[i];
         
@@ -89,8 +91,10 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 if (platform.key_down[GLFW_KEY_D]) acc.x += 1.0f;
                 
                 if (platform.mouse_down[GLFW_MOUSE_BUTTON_LEFT] && e->cooldown <= 0.0f) {
-                    shoot = true;
-                    e->aim = v2_Norm(v2_Sub(mouse_world_position.xy, e->pos));
+                    shoot   = true;
+                    e->aim  = v2_Norm(v2_Sub(mouse_world_position.xy, e->pos));
+                    
+                    cam->shake += 0.1f;
                 }
                 
                 EntityFriction(e, 4.0f);
@@ -98,7 +102,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 
                 AddLight(map, e->pos.x, e->pos.y, (v3) { 0.8f, 0.8f, 0.0f });
                 
-                gs->camera.target = (v3) {
+                cam->target = (v3) {
                     .xy = v2_Add(e->pos, v2_Scale(e->vel, 0.8f)),
                     ._z = 12.0f + fClampMax(v2_Len(e->vel), 16.0f),
                 };
