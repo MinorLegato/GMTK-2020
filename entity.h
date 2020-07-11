@@ -10,6 +10,8 @@ enum EntityType_ {
     ENTITY_BULLET,
 };
 
+typedef u32 BulletPowers;
+
 enum BulletPowers_ {
     POWERUP_NONE,
     POWERUP_SPEED,
@@ -20,7 +22,7 @@ enum BulletPowers_ {
     POWERUP_COUNT
 };
 
-f32 powerup_cooldowns[] = {
+static f32 powerup_cooldowns[] = {
     [POWERUP_NONE]       = 0.2f,
     [POWERUP_SPEED]      = 0.2f,
     [POWERUP_SLOW]       = 0.2f,
@@ -30,7 +32,7 @@ f32 powerup_cooldowns[] = {
 };
 
 typedef struct Entity {
-    i32         type;
+    u32         type;
     
     v2          pos;
     v2          vel;

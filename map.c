@@ -119,6 +119,10 @@ static void UpdatePathToPlayer(Map* map, int player_x, int player_y) {
 
     u8 closed[MAP_HEIGHT][MAP_WIDTH] = {0};
 
+    for (int i = 0; i < MAP_WIDTH * MAP_HEIGHT; ++i) {
+        map->path_to_player[i / MAP_WIDTH][i % MAP_WIDTH] = i;
+    }
+
     i32 begin   = 0;
     i32 end     = 0;
 
@@ -141,7 +145,7 @@ static void UpdatePathToPlayer(Map* map, int player_x, int player_y) {
             closed[ny][nx] = true;
 
             map->path_to_player[ny][nx] = current;
-            queue[end] = ny * MAP_WIDTH + nx;
+            queue[end++] = ny * MAP_WIDTH + nx;
         }
     }
 }
