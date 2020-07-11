@@ -95,9 +95,11 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 if (platform.key_down[GLFW_KEY_A]) acc.x -= 1.0f;
                 if (platform.key_down[GLFW_KEY_D]) acc.x += 1.0f;
                 
+                v2 mouse_vec = v2_Sub(mouse_world_position.xy, e->pos);
+
                 if (platform.mouse_down[GLFW_MOUSE_BUTTON_LEFT] && e->cooldown <= 0.0f) {
                     shoot   = true;
-                    e->aim  = v2_Norm(v2_Sub(mouse_world_position.xy, e->pos));
+                    e->aim  = v2_Norm(mouse_vec);
                     
                     cam->shake += 0.1f;
                 }
@@ -108,7 +110,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 AddLight(map, e->pos.x, e->pos.y, (v3) { 0.8f, 0.8f, 0.0f });
                 
                 cam->target = (v3) {
-                    .xy = v2_Add(e->pos, v2_Scale(e->vel, 0.8f)),
+                    .xy = v2_Add(v2_Add(e->pos, v2_Scale(e->vel, 0.8f)), v2_Scale(mouse_vec, 0.3f)),
                     ._z = 12.0f + fClampMax(v2_Len(e->vel), 16.0f),
                 };
                 
