@@ -33,6 +33,11 @@ static void HandleCollision(GameState* gs, f32 dt) {
     for (int i = 0; i < em->count; ++i) {
         Entity* a = &em->array[i];
         
+        if ((a->pos.x - a->rad) < 0)            a->pos.x = a->rad;
+        if ((a->pos.y - a->rad) < 0)            a->pos.y = a->rad;
+        if ((a->pos.x + a->rad) >= MAP_WIDTH)   a->pos.x = MAP_WIDTH  - a->rad;
+        if ((a->pos.y + a->rad) >= MAP_HEIGHT)  a->pos.y = MAP_HEIGHT - a->rad;
+
         if (map->tiles[(i32)(a->pos.y + a->rad)][(i32)(a->pos.x)].type == TILE_WALL) { a->vel.y = 0.0f; a->pos.y = ceilf(a->pos.y)  - a->rad; }
         if (map->tiles[(i32)(a->pos.y - a->rad)][(i32)(a->pos.x)].type == TILE_WALL) { a->vel.y = 0.0f; a->pos.y = floorf(a->pos.y) + a->rad; }
         if (map->tiles[(i32)(a->pos.y)][(i32)(a->pos.x - a->rad)].type == TILE_WALL) { a->vel.x = 0.0f; a->pos.x = floorf(a->pos.x) + a->rad; }
@@ -112,12 +117,14 @@ static void UpdateEntities(GameState* gs, f32 dt) {
             case ENTITY_BULLET: {
                 e->life -= dt;
                 for(int loop = 0; loop < 10; loop++) {
-                    Particle p;
+                    Particle p = {0};
+
                     p.pos  = e->pos;
                     p.vel  = v2_Sub(v2_Rand(-5.0f, 5.0f), e->vel);
                     p.rad  = 0.01f;
                     p.life = 0.1f;
                     p.col  = powerup_colors[e->powerup];
+
                     ParticleAdd(&gs->particle_system, &p);
                 }
             } break;
@@ -157,19 +164,23 @@ static void UpdateEntities(GameState* gs, f32 dt) {
     }
 }
 
-static void RenderEntities(EntityManager* em) {
+static void RenderEntities(const EntityManager* em, const Map* map) {
     for (int i = 0; i < em->count; ++i) {
-        Entity* e = &em->array[i];
+        const Entity*   e    = &em->array[i];
+        const Tile*     tile = &map->tiles[(int)e->pos.y][(int)e->pos.x];
+
+        v3 light = tile->light;
         
         switch (e->type) {
             case ENTITY_PLAYER: {
-                RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 1.0f, 0.5f, 0, 1.0f });
+                RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 1.0f * light.r, 0.5f * light.g, 0, 1.0f });
             } break;
             case ENTITY_BULLET: {
-                RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, powerup_colors[e->powerup]);
+                v3 color = v3_Mul(powerup_colors[e->powerup].rgb, light);
+                RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { color.r, color.g, color.b, 1.0f });
             } break;
             case ENTITY_ENEMY: {
-                RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 1.0f, 0.0f, 0.0f, 1.0f });
+                RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 1.0f * light.r, 0.0f, 0.0f, 1.0f });
             } break;
         }
     }
@@ -220,7 +231,11 @@ static void GameRun(GameState* gs) {
         if (platform.key_pressed[GLFW_KEY_ESCAPE]) {
             game_running    = false;
         }
-        
+
+        if (platform.key_pressed[GLFW_KEY_R]) {
+            GameInit(gs);
+        }
+
         MapUpdate(&gs->map, dt);
         
         AddLight(&gs->map, mouse_world_position.x, mouse_world_position.y, (v3) { 0.5f, 0.0f, 0.5f });
@@ -256,8 +271,8 @@ static void GameRun(GameState* gs) {
                                                iClamp(platform.mouse_position.x, 0, platform.width - 1),
                                                iClamp(platform.mouse_position.y, 1, platform.height));
         
-        RenderEntities(&gs->entity_manager);
-        ParticlesRender(&gs->particle_system);
+        RenderEntities(&gs->entity_manager, &gs->map);
+        ParticlesRender(&gs->particle_system, &gs->map);
         
         RenderBox(mouse_world_position, (v3) { 0.1f, 0.1f, 0.1f }, (v4) { 1.0f, 0.0f, 1.0f });
         
