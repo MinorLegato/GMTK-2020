@@ -31,7 +31,8 @@ static b32 EntityIntersect(const Entity* a, const Entity* b) {
     return (dx * dx + dy * dy) < (r * r);
 }
 
-static void EntityAdd(EntityManager* em, const Entity* e) {
+static void EntityAdd(EntityManager* em, Entity* e) {
+    e->id = ++em->next_id;
     em->array[em->count++] = *e;
 }
 
