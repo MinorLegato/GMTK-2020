@@ -65,8 +65,9 @@ static void HandleCollision(GameState* gs, f32 dt) {
             
             const Entity* b = &em->array[j];
             
-            if (a->id == b->owner_id) continue;
-            if (a->owner_id == b->id) continue;
+            if (a->id == b->owner_id)       continue;
+            if (a->owner_id == b->id)       continue;
+            if (a->owner_id && a->owner_id == b->owner_id) continue;
             
             if (EntityIntersect(a, b) && collision_table[a->type][b->type]) {
                 impact = true;
@@ -229,13 +230,16 @@ static void UpdateEntities(GameState* gs, f32 dt) {
             
             EntityRemove(em, i);
         }
+
         e->cooldown -= dt;
+
         if(e->type != ENTITY_BULLET && powerup_switch_cooldown <= 0.0f) {
             e->powerup = iRand(0, POWERUP_COUNT);
             //e->powerup = POWERUP_SHOTGUN;
         }
     }
-    if(powerup_switch_cooldown <= 0.0f) {
+
+    if (powerup_switch_cooldown <= 0.0f) {
         powerup_switch_cooldown = fRand(2.0f, 10.0f);
     }
 }

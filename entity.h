@@ -26,9 +26,9 @@ enum BulletPowers_ {
 };
 
 static f32 powerup_cooldowns[] = {
-    [POWERUP_NONE]       = 0.2f,
-    [POWERUP_SPEED]      = 0.2f,
-    [POWERUP_MELEE]      = 0.2f,
+    [POWERUP_NONE]       = 0.15f,
+    [POWERUP_SPEED]      = 0.15f,
+    [POWERUP_MELEE]      = 0.15f,
     [POWERUP_EXPLOSIVE]  = 0.5f,
     [POWERUP_FIRE]       = 0.2f,
     [POWERUP_SHOTGUN]    = 0.3f,
