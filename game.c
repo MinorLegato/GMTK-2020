@@ -9,15 +9,15 @@ static const CollisionFunc* collision_table[ENTITY_COUNT][ENTITY_COUNT] = {
 static void HandleCollision(GameState* gs, f32 dt) {
     EntityManager*  em  = &gs->entity_manager;
     Map*            map = &gs->map;
-
+    
     for (int i = 0; i < em->count; ++i) {
         Entity* a = &em->array[i];
-
+        
         for (int j = 0; j < em->count; ++j) {
             if (i == j) continue;
-
+            
             Entity* b = &em->array[i];
-
+            
             if (collision_table[a->type][b->type]) {
                 collision_table[a->type][b->type](a, b, dt);
             }
@@ -35,8 +35,8 @@ static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
     p.powerup = e->powerup;
     f32 speed = 5.0f;
     if(p.powerup == POWERUP_SPEED) speed = 10.0f;
-    if(p.powerup == POWERUP_SLOW)  speed = 2.5f;
-    p.vel = v2_Scale(aim, speed);
+    else if(p.powerup == POWERUP_SLOW)  speed = 2.5f;
+    p.vel = v2_Add(v2_Scale(aim, speed), e->vel);
     EntityAdd(em, &p);
 }
 
@@ -61,9 +61,8 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 if (platform.key_down[GLFW_KEY_D]) acc.x += 1.0f;
                 
                 if (platform.mouse_down[GLFW_MOUSE_BUTTON_LEFT] && e->cooldown <= 0.0f) {
-                    e->aim = v2_Norm(v2_Sub(mouse_world_position.xy, e->pos));
-                    e->cooldown = powerup_cooldowns[e->powerup];
                     shoot = true;
+                    e->aim = v2_Norm(v2_Sub(mouse_world_position.xy, e->pos));
                 }
                 
                 EntityFriction(e, 4.0f);
@@ -75,7 +74,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                     .xy = v2_Add(e->pos, v2_Scale(e->vel, 0.8f)),
                     ._z = 12.0f + fClampMax(v2_Len(e->vel), 16.0f),
                 };
-
+                
                 UpdatePathToPlayer(map, e->pos.x, e->pos.y);
             } break;
             case ENTITY_BULLET: {
@@ -83,28 +82,37 @@ static void UpdateEntities(GameState* gs, f32 dt) {
             } break;
             case ENTITY_ENEMY: {
                 v2 next_tile = NextPathToPlayer(map, e->pos.x, e->pos.y);
-
+                
                 v2 dir = v2_Norm(v2_Sub(next_tile, e->pos));
-
+                
                 EntityFriction(e, 4.0f);
                 EntityApply(e, v2_Scale(dir, 6.0f));
-
+                
                 AddLight(map, e->pos.x, e->pos.y, (v3) { 0.8f, 0.0f, 0.1f });
+                Entity* player = &em->array[0];
+                v2 dist_vec = v2_Sub(player->pos, e->pos);
+                if(e->cooldown <= 0.0f && v2_Len(dist_vec) < 2.0f) {
+                    shoot = true;
+                    e->aim = v2_Norm(dist_vec);
+                }
             } break;
         }
         
         EntityUpdate(e, dt);
-
-        if (shoot) CreateBullet(em, e, e->aim);
+        
+        if (shoot) {
+            CreateBullet(em, e, e->aim);
+            e->cooldown = powerup_cooldowns[e->powerup];
+        }
         if (e->life <= 0.0f) EntityRemove(em, i);
-
+        
         e->cooldown -= dt;
         if(e->type != ENTITY_BULLET && powerup_switch_cooldown <= 0.0f) {
             e->powerup = iRand(0, POWERUP_COUNT);
         }
     }
     if(powerup_switch_cooldown <= 0.0f) {
-        powerup_switch_cooldown = 1.0f;
+        powerup_switch_cooldown = fRand(2.0f, 10.0f);
     }
 }
 
@@ -151,12 +159,12 @@ static void RenderEntities(EntityManager* em) {
 static v2 GetValidSpawnLocation(Map* map) {
     int x = iRand(0, MAP_WIDTH);
     int y = iRand(0, MAP_HEIGHT);
-
+    
     while (map->tiles[y][x].type != TILE_FLOOR) {
         x = iRand(0, MAP_WIDTH);
         y = iRand(0, MAP_HEIGHT);
     }
-
+    
     return (v2) { x + 0.5f, y + 0.5f };
 }
 
