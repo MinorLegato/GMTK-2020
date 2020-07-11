@@ -27,6 +27,24 @@ static void ParticleExplosion(ParticleSystem* ps, v2 pos, f32 max_rad, i32 amoun
     }
 }
 
+static void BloodSpurter(ParticleSystem* ps, Entity* e, i32 amount) {
+    for (int i = 0; i < amount; i++) {
+        v3 color = { .r = fRand(0.3f, 1.0f) };
+        Particle p = CreateParticle(e->pos, v2_Add(v2_Scale(v2_Neg(e->aim), 2.0f), v2_Rand(-2.0f, 2.0f)),
+                                    fRand(0.01f, 0.05f), fRand(0.5f, 1.0f), color);
+        ParticleAdd(ps, &p);
+    }
+}
+
+static void BloodExplosion(ParticleSystem* ps, Entity* e, i32 amount) {
+    for (int i = 0; i < amount; i++) {
+        v3 color = { .r = fRand(0.3f, 1.0f) };
+        Particle p = CreateParticle(e->pos, v2_Rand(-3.0f, 3.0f), fRand(0.01f, 0.1f),
+                                    fRand(0.5f, 1.0f), color);
+        ParticleAdd(ps, &p);
+    }
+}
+
 static void ParticlesUpdate(ParticleSystem* ps, f32 t) {
     for(int i = 0; i < ps->count; i++) {
         Particle* p = &ps->particles[i];
