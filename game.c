@@ -34,7 +34,7 @@ static CollisionFunc* collision_table[ENTITY_COUNT][ENTITY_COUNT] = {
     [ENTITY_CORPSE][ENTITY_ENEMY]   = PushCollision,
     [ENTITY_CORPSE][ENTITY_CORPSE]  = PushCollision,
     //area collision:
-    [ENTITY_ENEMY][ENTITY_AREA_DMG] = DamageCollision,
+    [ENTITY_ENEMY][ENTITY_AREA_DMG] = KillCollision,
 };
 
 static void HandleCollision(GameState* gs, f32 dt) {
@@ -85,18 +85,23 @@ static void HandleCollision(GameState* gs, f32 dt) {
 }
 
 static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
-    Entity p = {0};
-    p.type = ENTITY_BULLET;
-    p.pos = v2_Add(e->pos, v2_Scale(aim, 0.1f));
-    p.rad = 0.1f;
-    p.life = 1.0f;
-    p.powerup = e->powerup;
-    p.owner_id  = e->id;
-    f32 speed = 5.0f;
-    if (p.powerup == POWERUP_SPEED) speed = 10.0f;
-    else if (p.powerup == POWERUP_SLOW)  speed = 2.5f;
-    p.vel = v2_Add(v2_Scale(aim, speed), e->vel);
-    EntityAdd(em, &p);
+    if(e->powerup == POWERUP_MELEE) {
+        EntityAdd(em, &(Entity) { .type = ENTITY_AREA_DMG, .pos = v2_Add(e->pos, v2_Scale(e->aim, 0.5f)), .rad = 0.25f, .life = 0.1f });
+    }
+    else {
+        f32 speed = 5.0f;
+        if (e->powerup == POWERUP_SPEED) speed = 10.0f;
+        Entity p = {
+            .type = ENTITY_BULLET,
+            .pos = v2_Add(e->pos, v2_Scale(aim, 0.1f)),
+            .rad = 0.1f,
+            .life = 1.0f,
+            .powerup = e->powerup,
+            .owner_id  = e->id,
+            .vel = v2_Add(v2_Scale(aim, speed), e->vel),
+        };
+        EntityAdd(em, &p);
+    }
 }
 
 static void UpdateEntities(GameState* gs, f32 dt) {
@@ -136,6 +141,9 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 
                 if (shoot) {
                     CreateBullet(em, e, e->aim);
+                    if(e->powerup == POWERUP_MELEE) {
+                        ParticleExplosion(&gs->particle_system, v2_Add(e->pos, v2_Scale(e->aim, 0.5f)), 0.05f, 20, 5.0f);
+                    }
                     e->cooldown = powerup_cooldowns[e->powerup];
                 }
                 
@@ -192,6 +200,9 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 EntityFriction(e, 4.0f);
                 e->life -= dt;
             }
+            case ENTITY_AREA_DMG: {
+                e->life -= dt;
+            }
         }
         
         EntityUpdate(e, dt);
@@ -200,7 +211,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
             if(e->type == ENTITY_BULLET) {
                 if(e->powerup == POWERUP_EXPLOSIVE) {
                     ParticleExplosion(&gs->particle_system, e->pos, 0.05f, 1000, 5.0f);
-                    EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_AREA_DMG, .pos = e->pos, .rad = 1.0f, .life = 0.0f });
+                    EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_AREA_DMG, .pos = e->pos, .rad = 1.0f, .life = 0.1f });
                 }
             }
             else if(e->type == ENTITY_CORPSE) {

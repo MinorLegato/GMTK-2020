@@ -18,7 +18,7 @@ typedef u32 BulletPowers;
 enum BulletPowers_ {
     POWERUP_NONE,
     POWERUP_SPEED,
-    POWERUP_SLOW,
+    POWERUP_MELEE,
     POWERUP_EXPLOSIVE,
     POWERUP_FIRE,
     POWERUP_CHARGE,
@@ -28,7 +28,7 @@ enum BulletPowers_ {
 static f32 powerup_cooldowns[] = {
     [POWERUP_NONE]       = 0.2f,
     [POWERUP_SPEED]      = 0.2f,
-    [POWERUP_SLOW]       = 0.2f,
+    [POWERUP_MELEE]      = 0.2f,
     [POWERUP_EXPLOSIVE]  = 0.5f,
     [POWERUP_FIRE]       = 0.2f,
     [POWERUP_CHARGE]     = 0.2f,
@@ -37,7 +37,6 @@ static f32 powerup_cooldowns[] = {
 static v3 powerup_colors[] = {
     [POWERUP_NONE]      = { 0.0f, 0.0f, 0.0f },
     [POWERUP_SPEED]     = { 0.0f, 1.0f, 0.0f },
-    [POWERUP_SLOW]      = { 0.0f, 0.0f, 1.0f },
     [POWERUP_EXPLOSIVE] = { 1.0f, 0.0f, 0.0f },
     [POWERUP_FIRE]      = { 1.0f, 1.0f, 0.0f },
     [POWERUP_CHARGE]    = { 1.0f, 1.0f, 1.0f },
