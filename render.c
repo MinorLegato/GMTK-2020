@@ -29,7 +29,6 @@ static void RenderSquare(v2 pos, f32 rad, v4 col) {
     glEnd();
 }
 
-
 static void RenderBox(v3 pos, v3 scale, v4 col) {
     glLoadIdentity();
 

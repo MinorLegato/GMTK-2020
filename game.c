@@ -34,15 +34,17 @@ static void HandleCollision(GameState* gs, f32 dt) {
     for (int i = 0; i < em->count; ++i) {
         Entity* a = &em->array[i];
 
-        if ((a->pos.x - a->rad) < 0)            a->pos.x = a->rad;
-        if ((a->pos.y - a->rad) < 0)            a->pos.y = a->rad;
-        if ((a->pos.x + a->rad) >= MAP_WIDTH)   a->pos.x = MAP_WIDTH  - a->rad;
-        if ((a->pos.y + a->rad) >= MAP_HEIGHT)  a->pos.y = MAP_HEIGHT - a->rad;
+        b32 impact = false;
+
+        if ((a->pos.x - a->rad) < 0)            { impact = true; a->pos.x = a->rad; }
+        if ((a->pos.y - a->rad) < 0)            { impact = true; a->pos.y = a->rad; }
+        if ((a->pos.x + a->rad) >= MAP_WIDTH)   { impact = true; a->pos.x = MAP_WIDTH  - a->rad; }
+        if ((a->pos.y + a->rad) >= MAP_HEIGHT)  { impact = true; a->pos.y = MAP_HEIGHT - a->rad; }
         
-        if (map->tiles[(i32)(a->pos.y + a->rad)][(i32)(a->pos.x)].type == TILE_WALL) { a->vel.y = 0.0f; a->pos.y = ceilf(a->pos.y)  - a->rad; }
-        if (map->tiles[(i32)(a->pos.y - a->rad)][(i32)(a->pos.x)].type == TILE_WALL) { a->vel.y = 0.0f; a->pos.y = floorf(a->pos.y) + a->rad; }
-        if (map->tiles[(i32)(a->pos.y)][(i32)(a->pos.x - a->rad)].type == TILE_WALL) { a->vel.x = 0.0f; a->pos.x = floorf(a->pos.x) + a->rad; }
-        if (map->tiles[(i32)(a->pos.y)][(i32)(a->pos.x + a->rad)].type == TILE_WALL) { a->vel.x = 0.0f; a->pos.x = ceilf(a->pos.x)  - a->rad; }
+        if (map->tiles[(i32)(a->pos.y + a->rad)][(i32)(a->pos.x)].type == TILE_WALL) { impact = true; a->vel.y = 0.0f; a->pos.y = ceilf(a->pos.y)  - a->rad; }
+        if (map->tiles[(i32)(a->pos.y - a->rad)][(i32)(a->pos.x)].type == TILE_WALL) { impact = true; a->vel.y = 0.0f; a->pos.y = floorf(a->pos.y) + a->rad; }
+        if (map->tiles[(i32)(a->pos.y)][(i32)(a->pos.x - a->rad)].type == TILE_WALL) { impact = true; a->vel.x = 0.0f; a->pos.x = floorf(a->pos.x) + a->rad; }
+        if (map->tiles[(i32)(a->pos.y)][(i32)(a->pos.x + a->rad)].type == TILE_WALL) { impact = true; a->vel.x = 0.0f; a->pos.x = ceilf(a->pos.x)  - a->rad; }
         
         for (int j = 0; j < em->count; ++j) {
             if (i == j) continue;
@@ -53,8 +55,13 @@ static void HandleCollision(GameState* gs, f32 dt) {
             if (a->owner_id == b->id) continue;
 
             if (EntityIntersect(a, b) && collision_table[a->type][b->type]) {
+                impact = true;
                 collision_table[a->type][b->type](a, b, dt);
             }
+        }
+
+        if (impact) {
+            a->flags |= ENTITY_FLAG_IMPACT;
         }
     }
 }
@@ -122,10 +129,20 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 UpdatePathToPlayer(map, e->pos.x, e->pos.y);
             } break;
             case ENTITY_BULLET: {
+                if (e->flags & ENTITY_FLAG_IMPACT) {
+                    for (int i = 0; i < 32; ++i) {
+                        Particle p = CreateParticle(e->pos, v2_Rand(-2.0f, 2.0f), 0.02f, 0.5f, powerup_colors[e->powerup]);
+
+                        ParticleAdd(&gs->particle_system, &p);
+                    }
+
+                    e->life = 0.0f;
+                }
+
                 e->life -= dt;
+
                 for(int loop = 0; loop < 10; loop++) {
-                    Particle p = CreateParticle(e->pos, v2_Sub(v2_Rand(-5.0f, 5.0f), e->vel),
-                                                0.01f, 0.1f, powerup_colors[e->powerup]);
+                    Particle p = CreateParticle(e->pos, v2_Sub(v2_Rand(-5.0f, 5.0f), e->vel), 0.01f, 0.1f, powerup_colors[e->powerup]);
                     ParticleAdd(&gs->particle_system, &p);
                 }
             } break;
@@ -251,7 +268,7 @@ static void GameRun(GameState* gs) {
         CameraUpdate(&gs->camera, dt);
         
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
+
         // camera:
         {
             Camera* cam = &gs->camera;

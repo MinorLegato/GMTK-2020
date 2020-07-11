@@ -49,6 +49,8 @@ enum EntityFlags_ {
 typedef struct Entity {
     u32         type;
     u32         id;
+
+    u32         flags;
     
     v2          pos;
     v2          vel;
