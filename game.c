@@ -87,7 +87,7 @@ static void HandleCollision(GameState* gs, f32 dt) {
 
 static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
     if(e->powerup == POWERUP_MELEE) {
-        EntityAdd(em, &(Entity) { .type = ENTITY_AREA_DMG, .pos = v2_Add(e->pos, v2_Scale(e->aim, 0.5f)), .rad = 0.25f, .life = 0.1f });
+        EntityAdd(em, &(Entity) { .type = ENTITY_AREA_DMG, .pos = v2_Add(e->pos, v2_Scale(e->aim, 0.6f)), .rad = 0.3f, .life = 0.1f });
     }
     else {
         f32 speed = 5.0f;
@@ -109,12 +109,18 @@ static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
     }
 }
 
+static f32 powerup_switch_cooldown = 0.0f;
+static f32 powerup_switch_cooldown_org = 0.0f;
+
 static void UpdateEntities(GameState* gs, f32 dt) {
     EntityManager*  em  = &gs->entity_manager;
     Map*            map = &gs->map;
     Camera*         cam = &gs->camera;
     
-    static f32 powerup_switch_cooldown = 1.0f;
+    if (powerup_switch_cooldown <= 0.0f) {
+        powerup_switch_cooldown = fRand(2.0f, 10.0f);
+        powerup_switch_cooldown_org = powerup_switch_cooldown;
+    }
     powerup_switch_cooldown -= dt;
     
     for (int i = 0; i < em->count; ++i) {
@@ -125,6 +131,11 @@ static void UpdateEntities(GameState* gs, f32 dt) {
         switch (e->type) {
             case ENTITY_PLAYER: {
                 v2 acc = {0};
+                
+                e->cooldown -= dt;
+                if(powerup_switch_cooldown <= 0.0f) {
+                    e->powerup = iRand(0, POWERUP_COUNT);
+                }
                 
                 if (platform.key_down[GLFW_KEY_W]) acc.y += 1.0f;
                 if (platform.key_down[GLFW_KEY_S]) acc.y -= 1.0f;
@@ -225,21 +236,11 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 BloodExplosion(&gs->particle_system, e, 100);
             }
             else if(e->type == ENTITY_PLAYER || e->type == ENTITY_ENEMY) {
-                EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_CORPSE, .pos = e->pos, .aim = e->vel, .rad = e->rad, .life = 2.0f });
+                EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_CORPSE, .pos = e->pos, .aim = v2_Norm(e->vel), .rad = e->rad, .life = 2.0f });
             }
             
             EntityRemove(em, i);
         }
-        
-        e->cooldown -= dt;
-        
-        if(e->type != ENTITY_BULLET && powerup_switch_cooldown <= 0.0f) {
-            e->powerup = iRand(0, POWERUP_COUNT);
-        }
-    }
-    
-    if (powerup_switch_cooldown <= 0.0f) {
-        powerup_switch_cooldown = fRand(2.0f, 10.0f);
     }
 }
 
@@ -268,6 +269,8 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
                 } else {
                     RenderTexture(knife_texture, weapon_pos, e->rad, v2_GetAngle((v2) { -1.0f, 0.0f }, e->aim), (v4) { light.r, light.g, light.b, 1.0f });
                 }
+                RenderRect(v2_Add(e->pos, (v2) {0.0f, 0.5f}), 1.0f,
+                           (v2) {(powerup_switch_cooldown / powerup_switch_cooldown_org) * 0.3f, 0.05f }, (v4) { 0.0f, 0.0f, 1.0f, 1.0f });
             } break;
             case ENTITY_BULLET: {
                 v3 color = v3_Mul(powerup_colors[e->powerup], light);
