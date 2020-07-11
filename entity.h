@@ -34,6 +34,7 @@ static f32 powerup_cooldowns[] = {
 
 typedef struct Entity {
     u32         type;
+    u32         id;
     
     v2          pos;
     v2          vel;
@@ -47,6 +48,8 @@ typedef struct Entity {
     
     i32         powerup;
     f32         cooldown;
+
+    u32         owner_id;
 } Entity;
 
 static void EntityFriction  (Entity* e, f32 friction);
@@ -56,10 +59,12 @@ static void EntityUpdate    (Entity* e, f32 dt);
 static b32  EntityIntersect (const Entity* a, const Entity* b);
 
 typedef struct EntityManager {
+    u32         next_id;
+
     i32         count;
     Entity      array[ENTITY_MAX];
 } EntityManager;
 
-static void     AddEntity      (EntityManager* em, const Entity* e);
+static void     EntityAdd      (EntityManager* em, Entity* e);
 static void     RemoveEntity    (EntityManager* em, i32 index);
 

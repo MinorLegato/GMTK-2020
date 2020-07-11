@@ -28,13 +28,15 @@ static void HandleCollision(GameState* gs, f32 dt) {
 
         if (map->tiles[(i32)(a->pos.y + a->rad)][(i32)(a->pos.x)].type == TILE_WALL) { a->vel.y = 0.0f; a->pos.y = ceilf(a->pos.y)  - a->rad; }
         if (map->tiles[(i32)(a->pos.y - a->rad)][(i32)(a->pos.x)].type == TILE_WALL) { a->vel.y = 0.0f; a->pos.y = floorf(a->pos.y) + a->rad; }
-        if (map->tiles[(i32)(a->pos.y)][(i32)(a->pos.x - a->rad)].type == TILE_WALL) { a->vel.x = 0.0f; a->pos.x = floorf(a->pos.x)+ a->rad; }
+        if (map->tiles[(i32)(a->pos.y)][(i32)(a->pos.x - a->rad)].type == TILE_WALL) { a->vel.x = 0.0f; a->pos.x = floorf(a->pos.x) + a->rad; }
         if (map->tiles[(i32)(a->pos.y)][(i32)(a->pos.x + a->rad)].type == TILE_WALL) { a->vel.x = 0.0f; a->pos.x = ceilf(a->pos.x)  - a->rad; }
 
         for (int j = 0; j < em->count; ++j) {
             if (i == j) continue;
 
             const Entity* b = &em->array[j];
+
+            if (a->id == b->owner_id) continue;
 
             if (EntityIntersect(a, b) && collision_table[a->type][b->type]) {
                 collision_table[a->type][b->type](a, b, dt);
@@ -50,9 +52,10 @@ static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
     p.rad = 0.1f;
     p.life = 1.0f;
     p.powerup = e->powerup;
+    p.owner_id  = e->id;
     f32 speed = 5.0f;
-    if(p.powerup == POWERUP_SPEED) speed = 10.0f;
-    else if(p.powerup == POWERUP_SLOW)  speed = 2.5f;
+    if (p.powerup == POWERUP_SPEED) speed = 10.0f;
+    else if (p.powerup == POWERUP_SLOW)  speed = 2.5f;
     p.vel = v2_Add(v2_Scale(aim, speed), e->vel);
     EntityAdd(em, &p);
 }
