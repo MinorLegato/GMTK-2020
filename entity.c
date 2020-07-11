@@ -23,6 +23,14 @@ static void EntityUpdate(Entity* e, f32 dt) {
     e->acc.y = 0.0f;
 }
 
+static b32 EntityIntersect(const Entity* a, const Entity* b) {
+    f32 dx  = a->pos.x - b->pos.x;
+    f32 dy  = a->pos.y - b->pos.y;
+    f32 r   = a->rad + b->rad;
+
+    return (dx * dx + dy * dy) < (r * r);
+}
+
 static void EntityAdd(EntityManager* em, const Entity* e) {
     em->array[em->count++] = *e;
 }

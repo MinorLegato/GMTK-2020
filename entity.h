@@ -8,6 +8,7 @@ enum EntityType_ {
     ENTITY_PLAYER,
     ENTITY_ENEMY,
     ENTITY_BULLET,
+    ENTITY_COUNT
 };
 
 typedef u32 BulletPowers;
@@ -52,6 +53,7 @@ static void EntityFriction  (Entity* e, f32 friction);
 static void EntityApply     (Entity* e, v2  force);
 static void EntityPush      (Entity* e, v2  push);
 static void EntityUpdate    (Entity* e, f32 dt);
+static b32  EntityIntersect (const Entity* a, const Entity* b);
 
 typedef struct EntityManager {
     i32         count;

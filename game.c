@@ -1,9 +1,22 @@
 
-#if 0
-typedef void CollisionFunc(Entity*, const Entity* b);
+static void PushCollision(Entity* a, const Entity* b, f32 dt) {
+    EntityApply(a, v2_Scale(v2_Norm(v2_Sub(a->pos, b->pos)), 16.0f));
+}
 
-static const CollisionFunc* collision_table[ENTITY_COUNT][ENTITY_COUNT] = {
-    [ENTITY_][ENTITY] = PhysicsCollision,
+static void DamageCollision(Entity* a, const Entity* b, f32 dt) {
+    a->life -= 1.0f;
+}
+
+typedef void CollisionFunc(Entity* a, const Entity* b, f32 dt);
+
+static CollisionFunc* collision_table[ENTITY_COUNT][ENTITY_COUNT] = {
+    // player collision:
+    [ENTITY_PLAYER][ENTITY_ENEMY]   = PushCollision,
+    [ENTITY_PLAYER][ENTITY_BULLET]  = DamageCollision,
+    // enemy collision:
+    [ENTITY_ENEMY][ENTITY_ENEMY]    = PushCollision,
+    [ENTITY_ENEMY][ENTITY_BULLET]   = DamageCollision,
+    // bullet collision:
 };
 
 static void HandleCollision(GameState* gs, f32 dt) {
@@ -13,18 +26,22 @@ static void HandleCollision(GameState* gs, f32 dt) {
     for (int i = 0; i < em->count; ++i) {
         Entity* a = &em->array[i];
 
+        if (map->tiles[(i32)(a->pos.y + a->rad)][(i32)(a->pos.x)].type == TILE_WALL) { a->vel.y = 0.0f; a->pos.y = ceilf(a->pos.y)  - a->rad; }
+        if (map->tiles[(i32)(a->pos.y - a->rad)][(i32)(a->pos.x)].type == TILE_WALL) { a->vel.y = 0.0f; a->pos.y = floorf(a->pos.y) + a->rad; }
+        if (map->tiles[(i32)(a->pos.y)][(i32)(a->pos.x - a->rad)].type == TILE_WALL) { a->vel.x = 0.0f; a->pos.x = floorf(a->pos.x)+ a->rad; }
+        if (map->tiles[(i32)(a->pos.y)][(i32)(a->pos.x + a->rad)].type == TILE_WALL) { a->vel.x = 0.0f; a->pos.x = ceilf(a->pos.x)  - a->rad; }
+
         for (int j = 0; j < em->count; ++j) {
             if (i == j) continue;
 
-            Entity* b = &em->array[i];
+            const Entity* b = &em->array[j];
 
-            if (collision_table[a->type][b->type]) {
+            if (EntityIntersect(a, b) && collision_table[a->type][b->type]) {
                 collision_table[a->type][b->type](a, b, dt);
             }
         }
     }
 }
-#endif
 
 static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
     Entity p = {0};
@@ -198,6 +215,7 @@ static void GameRun(GameState* gs) {
         
         AddLight(&gs->map, mouse_world_position.x, mouse_world_position.y, (v3) { 0.5f, 0.0f, 0.5f });
         
+        HandleCollision(gs, dt);
         UpdateEntities(gs, dt);
         
         ParticlesUpdate(&gs->particle_system, dt);
