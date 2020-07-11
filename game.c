@@ -7,8 +7,8 @@ static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
     p.life = 1.0f;
     p.powerup = e->powerup;
     f32 speed = 5.0f;
-    if(p.powerup == BULLET_SPEED) speed = 10.0f;
-    if(p.powerup == BULLET_SLOW)  speed = 2.5f;
+    if(p.powerup == POWERUP_SPEED) speed = 10.0f;
+    if(p.powerup == POWERUP_SLOW)  speed = 2.5f;
     p.vel = v2_Scale(aim, speed);
     EntityAdd(em, &p);
 }
@@ -20,6 +20,8 @@ static void UpdateEntities(GameState* gs, f32 dt) {
     for (int i = 0; i < em->count; ++i) {
         Entity* e = &em->array[i];
         
+        b32 shoot = false;
+        
         switch (e->type) {
             case ENTITY_PLAYER: {
                 v2 acc = {0};
@@ -29,14 +31,13 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 if (platform.key_down[GLFW_KEY_A]) acc.x -= 1.0f;
                 if (platform.key_down[GLFW_KEY_D]) acc.x += 1.0f;
                 
-                v2 aim = { 0.0f, 0.0f };
-                if (platform.key_pressed[GLFW_KEY_UP])    aim.y += 1.0f;
-                if (platform.key_pressed[GLFW_KEY_DOWN])  aim.y -= 1.0f;
-                if (platform.key_pressed[GLFW_KEY_LEFT])  aim.x -= 1.0f;
-                if (platform.key_pressed[GLFW_KEY_RIGHT]) aim.x += 1.0f;
-                if(v2_Len(aim) > 0.0f) {
-                    CreateBullet(em, e, v2_Norm(aim));
+                
+                if (platform.mouse_down[GLFW_MOUSE_BUTTON_LEFT] && e->cooldown <= 0.0f) {
+                    e->aim = v2_Norm(v2_Sub(mouse_world_position.xy, e->pos));
+                    e->cooldown = powerup_cooldowns[e->powerup];
+                    shoot = true;
                 }
+                
                 EntityFriction(e, 4.0f);
                 EntityApply(e, v2_Scale(v2_Norm(acc), 8.0f));
                 
@@ -53,7 +54,9 @@ static void UpdateEntities(GameState* gs, f32 dt) {
         }
         
         EntityUpdate(e, dt);
+        if(shoot) CreateBullet(em, e, e->aim);
         if(e->life <= 0.0f) EntityRemove(em, i);
+        e->cooldown -= dt;
     }
 }
 
@@ -66,9 +69,29 @@ static void RenderEntities(EntityManager* em) {
                 RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 1.0f, 0.5f, 0, 1.0f });
             } break;
             case ENTITY_BULLET: {
-                
-                RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 1.0f, 1.0f, 1.0f, 1.0f });
-            } break;
+                v4 color;
+                switch(e->powerup) {
+                    case POWERUP_NONE: {
+                        color = (v4) { 0.0f, 0.0f, 0.0f, 1.0f };
+                    } break;
+                    case POWERUP_SPEED: {
+                        color = (v4) { 0.0f, 1.0f, 0.0f, 1.0f };
+                    } break;
+                    case POWERUP_SLOW: {
+                        color = (v4) { 0.0f, 0.0f, 1.0f, 1.0f };
+                    } break;
+                    case POWERUP_EXPLOSIVE: {
+                        color = (v4) { 1.0f, 0.0f, 0.0f, 1.0f };
+                    } break;
+                    case POWERUP_FIRE: {
+                        color = (v4) { 1.0f, 1.0f, 0.0f, 1.0f };
+                    } break;
+                    case POWERUP_CHARGE: {
+                        color = (v4) { 1.0f, 1.0f, 1.0f, 1.0f };
+                    } break;
+                }
+                RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, color);
+            }
         }
     }
 }
@@ -76,7 +99,10 @@ static void RenderEntities(EntityManager* em) {
 static void GameInit(GameState* gs) {
     *gs = (GameState) {0};
     
-    EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_PLAYER, .pos = { 0.5f * MAP_WIDTH, 0.5f * MAP_HEIGHT }, .rad = 0.2f, .life = 1.0f });
+    EntityAdd(&gs->entity_manager,
+              &(Entity) {
+                  .type = ENTITY_PLAYER, .pos = { 0.5f * MAP_WIDTH, 0.5f * MAP_HEIGHT }, .rad = 0.2f, .life = 1.0f, .powerup = POWERUP_NONE
+              });
     
     MapInit(&gs->map);
 }
