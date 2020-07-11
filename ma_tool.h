@@ -412,6 +412,17 @@ static v3 v3_Lerp(v3 a, v3 b, f32 t) {
     return out;
 }
 
+static v3 v3_Clamp(v3 a, f32 min, f32 max) {
+    v3 out = {
+        fClamp(a.x, min, max),
+        fClamp(a.y, min, max),
+        fClamp(a.z, min, max),
+    };
+
+    return out;
+}
+
+
 static v3 v3_Cross(v3 a, v3 b) {
     v3 r;
 

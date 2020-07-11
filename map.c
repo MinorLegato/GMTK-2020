@@ -10,18 +10,36 @@ static void MapInit(Map* map) {
     }
 }
 
+static v3 GetWallLight(Map* map, int x, int y) {
+    v3 result = {0};
+
+    for (int i = 0; i < 4; ++i) {
+        int nx = x + (int[]) { -1, 1, 0, 0 } [i];
+        int ny = y + (int[]) { 0, 0, -1, 1 } [i];
+
+        if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT)    continue;
+        if (map->tiles[ny][nx].type == TILE_WALL)                       continue;
+
+        result = v3_Add(result, map->tiles[ny][nx].light);
+    }
+
+    return v3_Scale(result, 1.0f / 4.0f);
+}
+
 static void MapRender(Map* map) {
     for (int y = 0; y < MAP_HEIGHT; ++y) {
         for (int x = 0; x < MAP_WIDTH; ++x) {
             Tile* tile = &map->tiles[y][x];
 
-            v3 light = tile->light;
-
             switch (tile->type) {
                 case TILE_FLOOR : {
+                    v3 light = tile->light;
+
                     RenderRect((v2) { x + 0.5f, y + 0.5f }, 0.0f, (v2) { 0.5f, 0.5f }, (v4) { 0.3f * light.r, 0.3f * light.g, 0.3f * light.b, 1.0f });
                 } break;
                 case TILE_WALL: {
+                    v3 light = GetWallLight(map, x, y);
+
                     RenderBox((v3) { x + 0.5f, y + 0.5f, 0.5f }, (v3) { 0.5f, 0.5f, 0.5f }, (v4) { 0.2f * light.r, 0.2f * light.g, 0.2f * light.b, 1.0f });
                 } break;
             }
@@ -34,12 +52,12 @@ static void MapUpdate(Map* map, f32 dt) {
         for (int x = 0; x < MAP_WIDTH; ++x) {
             Tile* tile = &map->tiles[y][x];
 
-            tile->light = v3_Lerp(tile->light, (v3) {0}, 8.0f * dt);
+            tile->light = v3_Lerp(tile->light, (v3) {0}, 1.0f * dt);
         }
     }
 }
 
-#define LIGHT_DROP_OFF  (0.1f)
+#define LIGHT_DROP_OFF  (0.05f)
 
 static void AddLight(Map* map, int source_x, int source_y, v3 light_color) {
     typedef struct Node {
@@ -49,9 +67,12 @@ static void AddLight(Map* map, int source_x, int source_y, v3 light_color) {
     } Node;
 
     static Node queue[MAP_WIDTH * MAP_HEIGHT];
-    static u8   closed[MAP_HEIGHT][MAP_WIDTH];
 
-    memset(closed, 0, sizeof closed);
+    if (source_x < 0 || source_x >= MAP_WIDTH || source_y < 0 || source_y >= MAP_HEIGHT) { return; }
+
+    light_color = v3_Clamp(light_color, 0.0f, 1.0f);
+
+    u8 closed[MAP_HEIGHT][MAP_WIDTH] = {0};
 
     int begin   = 0;
     int end     = 0;
@@ -72,20 +93,20 @@ static void AddLight(Map* map, int source_x, int source_y, v3 light_color) {
         }
 
         v3 new_light = {
-            fClampMin(current.light.r - LIGHT_DROP_OFF, 0.0f),
-            fClampMin(current.light.g - LIGHT_DROP_OFF, 0.0f),
-            fClampMin(current.light.b - LIGHT_DROP_OFF, 0.0f),
+            fClamp(current.light.r - LIGHT_DROP_OFF, 0.0f, 1.0f),
+            fClamp(current.light.g - LIGHT_DROP_OFF, 0.0f, 1.0f),
+            fClamp(current.light.b - LIGHT_DROP_OFF, 0.0f, 1.0f),
         };
 
         if (new_light.r + new_light.g + new_light.b <= 0.0f)
-            continue;
+            return;
 
         for (int i = 0; i < 4; ++i) {
             int nx = current.x + (int[]) { -1, 1, 0, 0 } [i];
             int ny = current.y + (int[]) { 0, 0, -1, 1 } [i];
 
             if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT)    continue;
-            if (map->tiles[ny][nx].type == TILE_WALL || closed[nx][ny])     continue;
+            if (map->tiles[ny][nx].type == TILE_WALL || closed[ny][nx])     continue;
 
             closed[ny][nx]  = true;
             queue[end++]    = (Node) { nx, ny, new_light };

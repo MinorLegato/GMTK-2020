@@ -18,7 +18,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 EntityFriction(e, 4.0f);
                 EntityApply(e, v2_Scale(v2_Norm(acc), 8.0f));
                 
-                //AddLight(map, e->pos.x, e->pos.y, (v3) { 1.0f, 0.0f, 0.5f });
+                AddLight(map, e->pos.x, e->pos.y, (v3) { 0.8f, 0.8f, 0.0f });
 
                 gs->camera.target = (v3) {
                     .xy = v2_Add(e->pos, v2_Scale(e->vel, 0.8f)),
@@ -73,8 +73,11 @@ static void GameRun(GameState* gs) {
             game_running    = false;
         }
         
-        UpdateEntities(gs, dt);
         MapUpdate(&gs->map, dt);
+
+        AddLight(&gs->map, mouse_world_position.x, mouse_world_position.y, (v3) { 0.5f, 0.0f, 0.5f });
+
+        UpdateEntities(gs, dt);
 
         ParticlesUpdate(&gs->particle_system, dt);
         CameraUpdate(&gs->camera, dt);
