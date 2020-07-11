@@ -168,6 +168,10 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                     e->aim = v2_Norm(dist_vec);
                 }
             } break;
+            case ENTITY_CORPSE: {
+                BloodSpurter(&gs->particle_system, e, 1);
+                e->life -= dt;
+            }
         }
 
         EntityUpdate(e, dt);
@@ -178,6 +182,13 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                     ParticleExplosion(&gs->particle_system, e->pos, 0.05f, 100, 5.0f);
                 }
             }
+            else if(e->type == ENTITY_CORPSE) {
+                BloodExplosion(&gs->particle_system, e, 100);
+            }
+            else {
+                EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_CORPSE, .pos = e->pos, .aim = e->vel, .rad = e->rad, .life = 2.0f });
+            }
+            
             EntityRemove(em, i);
         }
         e->cooldown -= dt;
@@ -208,6 +219,9 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
             case ENTITY_ENEMY: {
                 RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 1.0f * light.r, 0.0f, 0.0f, 1.0f });
             } break;
+            case ENTITY_CORPSE: {
+                RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 0.0f, 0.0f, 1.0f * light.r, 1.0f });
+            } break;
         }
     }
 }
@@ -228,17 +242,17 @@ static void GameInit(GameState* gs) {
     *gs = (GameState) {0};
 
     MapInit(&gs->map);
-
+    
     v2 player_pos = GetValidSpawnLocation(&gs->map);
 
     EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_PLAYER, .pos = player_pos, .rad = 0.2f, .life = 1.0f, .powerup = POWERUP_NONE });
     
     for (int i = 0; i < 64; ++i) {
         v2 enemy_pos = GetValidSpawnLocation(&gs->map);
-
+        
         while (v2_DistSq(player_pos, enemy_pos) < 8.0f * 8.0f)
             enemy_pos = GetValidSpawnLocation(&gs->map);
-
+        
         EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_ENEMY, .pos = enemy_pos, .rad = 0.2f, .life = 1.0f });
     }
 }

@@ -7,6 +7,7 @@ enum EntityType_ {
     ENTITY_NONE,
     ENTITY_PLAYER,
     ENTITY_ENEMY,
+    ENTITY_CORPSE,
     ENTITY_BULLET,
     ENTITY_COUNT
 };
