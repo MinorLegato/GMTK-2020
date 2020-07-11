@@ -25,6 +25,8 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                     ._z = 12.0f + fClampMax(v2_Len(e->vel), 16.0f),
                 };
             } break;
+            case ENTITY_ENEMY: {
+            } break;
         }
         
         EntityUpdate(e, dt);
@@ -115,3 +117,4 @@ static void GameRun(GameState* gs) {
         PlatformUpdate();
     }
 }
+

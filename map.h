@@ -17,8 +17,11 @@ typedef struct Tile {
 
 typedef struct Map {
     Tile        tiles[MAP_HEIGHT][MAP_WIDTH];
+
+    int         path_to_player[MAP_HEIGHT][MAP_WIDTH];
 } Map;
 
 static void MapInit     (Map* map);
 static void MapRender   (Map* map);
 static void MapUpdate   (Map* map, f32 dt);
+

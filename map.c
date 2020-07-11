@@ -40,7 +40,7 @@ static void MapRender(Map* map) {
                 case TILE_WALL: {
                     v3 light = GetWallLight(map, x, y);
 
-                    RenderBox((v3) { x + 0.5f, y + 0.5f, 0.5f }, (v3) { 0.5f, 0.5f, 0.5f }, (v4) { 0.2f * light.r, 0.2f * light.g, 0.2f * light.b, 1.0f });
+                    RenderBox((v3) { x + 0.5f, y + 0.5f, 1.0f }, (v3) { 0.5f, 0.5f, 1.0f }, (v4) { 0.2f * light.r, 0.2f * light.g, 0.2f * light.b, 1.0f });
                 } break;
             }
         }
@@ -110,6 +110,38 @@ static void AddLight(Map* map, int source_x, int source_y, v3 light_color) {
 
             closed[ny][nx]  = true;
             queue[end++]    = (Node) { nx, ny, new_light };
+        }
+    }
+}
+
+static void UpdatePathToPlayer(Map* map, int player_x, int player_y) {
+    static int queue[MAP_WIDTH * MAP_HEIGHT];
+
+    u8 closed[MAP_HEIGHT][MAP_WIDTH] = {0};
+
+    i32 begin   = 0;
+    i32 end     = 0;
+
+    map->path_to_player[player_y][player_x] = queue[end++] = player_y * MAP_WIDTH + player_x;
+    closed[player_y][player_x] = true;
+
+    while (begin < end) {
+        int current = queue[begin++];
+
+        int cx = current % MAP_WIDTH;
+        int cy = current / MAP_WIDTH;
+
+        for (int i = 0; i < 8; ++i) {
+            int nx = cx + (int[]) { -1, +1, 0, 0, -1, +1, -1, +1 } [i];
+            int ny = cy + (int[]) { 0, 0, -1, +1, -1, -1, +1, +1 } [i];
+
+            if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT)    continue;
+            if (map->tiles[ny][nx].type == TILE_WALL || closed[ny][nx])     continue;
+
+            closed[ny][nx] = true;
+
+            map->path_to_player[ny][nx] = current;
+            queue[end] = ny * MAP_WIDTH + nx;
         }
     }
 }
