@@ -7,6 +7,10 @@ static void DamageCollision(Entity* a, const Entity* b, f32 dt) {
     a->life -= 1.0f;
 }
 
+static void KillCollision(Entity* a, const Entity* b, f32 dt) {
+    a->life = 0.0f;
+}
+
 typedef void CollisionFunc(Entity* a, const Entity* b, f32 dt);
 
 static CollisionFunc* collision_table[ENTITY_COUNT][ENTITY_COUNT] = {
@@ -15,8 +19,11 @@ static CollisionFunc* collision_table[ENTITY_COUNT][ENTITY_COUNT] = {
     [ENTITY_PLAYER][ENTITY_BULLET]  = DamageCollision,
     // enemy collision:
     [ENTITY_ENEMY][ENTITY_ENEMY]    = PushCollision,
+    [ENTITY_ENEMY][ENTITY_PLAYER]   = PushCollision,
     [ENTITY_ENEMY][ENTITY_BULLET]   = DamageCollision,
     // bullet collision:
+    [ENTITY_BULLET][ENTITY_PLAYER]  = KillCollision,
+    [ENTITY_BULLET][ENTITY_ENEMY]   = KillCollision,
 };
 
 static void HandleCollision(GameState* gs, f32 dt) {
@@ -37,6 +44,7 @@ static void HandleCollision(GameState* gs, f32 dt) {
             const Entity* b = &em->array[j];
 
             if (a->id == b->owner_id) continue;
+            if (a->owner_id == b->id) continue;
 
             if (EntityIntersect(a, b) && collision_table[a->type][b->type]) {
                 collision_table[a->type][b->type](a, b, dt);

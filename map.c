@@ -139,8 +139,9 @@ static void UpdatePathToPlayer(Map* map, int player_x, int player_y) {
             int nx = cx + (int[]) { -1, +1, 0, 0, -1, +1, -1, +1 } [i];
             int ny = cy + (int[]) { 0, 0, -1, +1, -1, -1, +1, +1 } [i];
 
-            if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT)    continue;
-            if (map->tiles[ny][nx].type == TILE_WALL || closed[ny][nx])     continue;
+            if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT)                        continue;
+            if (map->tiles[ny][cx].type == TILE_WALL || map->tiles[cy][nx].type == TILE_WALL)   continue;
+            if (map->tiles[ny][nx].type == TILE_WALL || closed[ny][nx])                         continue;
 
             closed[ny][nx] = true;
 
