@@ -37,7 +37,7 @@ static void HandleCollision(GameState* gs, f32 dt) {
         if ((a->pos.y - a->rad) < 0)            a->pos.y = a->rad;
         if ((a->pos.x + a->rad) >= MAP_WIDTH)   a->pos.x = MAP_WIDTH  - a->rad;
         if ((a->pos.y + a->rad) >= MAP_HEIGHT)  a->pos.y = MAP_HEIGHT - a->rad;
-
+        
         if (map->tiles[(i32)(a->pos.y + a->rad)][(i32)(a->pos.x)].type == TILE_WALL) { a->vel.y = 0.0f; a->pos.y = ceilf(a->pos.y)  - a->rad; }
         if (map->tiles[(i32)(a->pos.y - a->rad)][(i32)(a->pos.x)].type == TILE_WALL) { a->vel.y = 0.0f; a->pos.y = floorf(a->pos.y) + a->rad; }
         if (map->tiles[(i32)(a->pos.y)][(i32)(a->pos.x - a->rad)].type == TILE_WALL) { a->vel.x = 0.0f; a->pos.x = floorf(a->pos.x) + a->rad; }
@@ -118,13 +118,13 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 e->life -= dt;
                 for(int loop = 0; loop < 10; loop++) {
                     Particle p = {0};
-
+                    
                     p.pos  = e->pos;
                     p.vel  = v2_Sub(v2_Rand(-5.0f, 5.0f), e->vel);
                     p.rad  = 0.01f;
                     p.life = 0.1f;
                     p.col  = powerup_colors[e->powerup];
-
+                    
                     ParticleAdd(&gs->particle_system, &p);
                 }
             } break;
@@ -152,8 +152,14 @@ static void UpdateEntities(GameState* gs, f32 dt) {
             CreateBullet(em, e, e->aim);
             e->cooldown = powerup_cooldowns[e->powerup];
         }
-        if (e->life <= 0.0f) EntityRemove(em, i);
-        
+        if (e->life <= 0.0f) {
+            if(e->type == ENTITY_BULLET) {
+                if(e->powerup == POWERUP_EXPLOSIVE) {
+                    ParticleExplosion(&gs->particle_system, e->pos, 0.05f, 100, 5.0f);
+                }
+            }
+            EntityRemove(em, i);
+        }
         e->cooldown -= dt;
         if(e->type != ENTITY_BULLET && powerup_switch_cooldown <= 0.0f) {
             e->powerup = iRand(0, POWERUP_COUNT);
@@ -168,7 +174,7 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
     for (int i = 0; i < em->count; ++i) {
         const Entity*   e    = &em->array[i];
         const Tile*     tile = &map->tiles[(int)e->pos.y][(int)e->pos.x];
-
+        
         v3 light = tile->light;
         
         switch (e->type) {
@@ -231,11 +237,11 @@ static void GameRun(GameState* gs) {
         if (platform.key_pressed[GLFW_KEY_ESCAPE]) {
             game_running    = false;
         }
-
+        
         if (platform.key_pressed[GLFW_KEY_R]) {
             GameInit(gs);
         }
-
+        
         MapUpdate(&gs->map, dt);
         
         AddLight(&gs->map, mouse_world_position.x, mouse_world_position.y, (v3) { 0.5f, 0.0f, 0.5f });
