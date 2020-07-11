@@ -78,3 +78,4 @@ static void ParticlesRender(const ParticleSystem* ps, const Map* map) {
         RenderRect(p->pos, 0.5f, (v2) { p->rad, p->rad }, (v4) { color.r, color.g, color.b, p->life / p->max_life });
     }
 }
+

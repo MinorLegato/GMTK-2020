@@ -131,13 +131,13 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 }
                 
                 v2 mouse_vec = v2_Sub(mouse_world_position.xy, e->pos);
-                
-                e->aim  = v2_Norm(mouse_vec);
+
+                e->aim = v2_Scale(v2_Norm(mouse_vec),
+                        fClamp(fLerp(0.5, 1.0f, 1.0f - e->cooldown / powerup_cooldowns[e->powerup]), 0.5f, 1.0f));
                 
                 if (platform.mouse_down[GLFW_MOUSE_BUTTON_LEFT] && e->cooldown <= 0.0f) {
-                    shoot   = true;
-                    
-                    cam->shake += 0.1f;
+                    shoot       = true;
+                    cam->shake  += 0.1f;
                 }
                 
                 if (shoot) {
@@ -145,6 +145,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                     if(e->powerup == POWERUP_MELEE) {
                         ParticleExplosion(&gs->particle_system, v2_Add(e->pos, v2_Scale(e->aim, 0.5f)), 0.05f, 20, 5.0f);
                     }
+
                     e->cooldown = powerup_cooldowns[e->powerup];
                 }
                 
@@ -236,8 +237,8 @@ static void UpdateEntities(GameState* gs, f32 dt) {
 
 static void RenderEntities(const EntityManager* em, const Map* map) {
     for (int i = 0; i < em->count; ++i) {
-        const Entity*   e    = &em->array[i];
-        const Tile*     tile = &map->tiles[(int)e->pos.y][(int)e->pos.x];
+        const Entity* e    = &em->array[i];
+        const Tile*   tile = &map->tiles[(int)e->pos.y][(int)e->pos.x];
         
         v3 light = tile->light;
         
