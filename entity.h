@@ -10,16 +10,27 @@ enum EntityType_ {
     ENTITY_BULLET,
 };
 
+enum BulletPowers_ {
+    BULLET_NONE,
+    BULLET_SPEED,
+    BULLET_SLOW,
+    BULLET_EXPLOSIVE,
+    BULLET_FIRE,
+    BULLET_CHARGE,
+};
+
 typedef struct Entity {
     i32         type;
-
+    
     v2          pos;
     v2          vel;
     v2          acc;
-
+    
     f32         rad;
-
+    
     f32         life;
+    
+    i32         powerup;
 } Entity;
 
 static void EntityFriction  (Entity* e, f32 friction);
