@@ -69,6 +69,70 @@ static void RenderBox(v3 pos, v3 scale, v4 col) {
     glEnd();
 }
 
+typedef struct Texture {
+    u32     id;
+    int     width;
+    int     height;
+} Texture;
+
+static Texture TextureCreate(unsigned char *pixels, int width, int height, int is_smooth) {
+    Texture texture  = {0};
+
+    texture.width   = width;
+    texture.height  = height;
+
+    glGenTextures(1, &texture.id);
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+
+    return texture;
+}
+
+extern void TextureBind(const Texture* texture) {
+    glBindTexture(GL_TEXTURE_2D, texture->id);
+
+    glMatrixMode(GL_TEXTURE);
+
+    glLoadIdentity();
+    glScalef(1.0f / texture->width, 1.0f / texture->height, 1.0f);
+
+    glMatrixMode(GL_MODELVIEW);
+}
+
+static void RenderTexture(Texture texture, v3 pos, f32 rad, f32 rot, v4 color) {
+    glPushMatrix();
+    glLoadIdentity();
+
+    glTranslatef(pos.x, pos.y, pos.z);
+    glScalef(rad, rad, 1.0f);
+    glRotatef(rot * TO_DEG_MUL, 0.0f, 0.0f, 1.0f);
+
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+
+    glEnable(GL_TEXTURE_2D);
+
+    glBegin(GL_QUADS);
+
+    glColor4f(color.r, color.g, color.b, color.a);
+
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -1.0f, 0.0f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(+1.0f, -1.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(+1.0f, +1.0f, 0.0f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, +1.0f, 0.0f);
+
+    glEnd();
+
+    glDisable(GL_TEXTURE_2D);
+
+    glPopMatrix();
+};
+
+static Texture player_texture;
+static Texture zombie_texture;
+
 #define BITMAP_COUNT    (256)
 
 static const u64 bitascii[BITMAP_COUNT] = {
