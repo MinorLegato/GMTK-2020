@@ -31,7 +31,7 @@ static f32 powerup_cooldowns[] = {
     [POWERUP_MELEE]      = 0.15f,
     [POWERUP_EXPLOSIVE]  = 0.5f,
     [POWERUP_FIRE]       = 0.2f,
-    [POWERUP_SHOTGUN]    = 0.3f,
+    [POWERUP_SHOTGUN]    = 0.4f,
 };
 
 static v3 powerup_colors[] = {

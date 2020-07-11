@@ -91,10 +91,10 @@ static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
     }
     else {
         f32 speed = 5.0f;
-        i32 loop  = 1;
+        i32 shots = 1;
         if (e->powerup == POWERUP_SPEED)        speed = 10.0f;
-        else if (e->powerup == POWERUP_SHOTGUN) loop  = 3;
-        for(int i = 0; i < loop; i++) {
+        else if (e->powerup == POWERUP_SHOTGUN) shots = 5;
+        for(int i = 0; i < shots; i++) {
             Entity p = {
                 .type = ENTITY_BULLET,
                 .pos = v2_Add(e->pos, v2_Scale(aim, 0.1f)),
@@ -230,15 +230,14 @@ static void UpdateEntities(GameState* gs, f32 dt) {
             
             EntityRemove(em, i);
         }
-
+        
         e->cooldown -= dt;
-
+        
         if(e->type != ENTITY_BULLET && powerup_switch_cooldown <= 0.0f) {
             e->powerup = iRand(0, POWERUP_COUNT);
-            //e->powerup = POWERUP_SHOTGUN;
         }
     }
-
+    
     if (powerup_switch_cooldown <= 0.0f) {
         powerup_switch_cooldown = fRand(2.0f, 10.0f);
     }
