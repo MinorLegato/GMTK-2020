@@ -1,5 +1,5 @@
 
-#define PARTICLE_MAX 2048
+#define PARTICLE_MAX 1024 * 64
 
 typedef struct Particle {
     v2      pos;
