@@ -23,7 +23,9 @@ int main(void) {
     PlatformInit("GMTK - 2020", 1200, 800);
     
     glEnable(GL_DEPTH_TEST);
-
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
     GameState* gs = calloc(1, sizeof (GameState));
     
     while (!platform.close) {

@@ -96,7 +96,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 if (platform.key_down[GLFW_KEY_D]) acc.x += 1.0f;
                 
                 v2 mouse_vec = v2_Sub(mouse_world_position.xy, e->pos);
-
+                
                 if (platform.mouse_down[GLFW_MOUSE_BUTTON_LEFT] && e->cooldown <= 0.0f) {
                     shoot   = true;
                     e->aim  = v2_Norm(mouse_vec);
@@ -119,14 +119,8 @@ static void UpdateEntities(GameState* gs, f32 dt) {
             case ENTITY_BULLET: {
                 e->life -= dt;
                 for(int loop = 0; loop < 10; loop++) {
-                    Particle p = {0};
-                    
-                    p.pos  = e->pos;
-                    p.vel  = v2_Sub(v2_Rand(-5.0f, 5.0f), e->vel);
-                    p.rad  = 0.01f;
-                    p.life = 0.1f;
-                    p.col  = powerup_colors[e->powerup];
-                    
+                    Particle p = CreateParticle(e->pos, v2_Sub(v2_Rand(-5.0f, 5.0f), e->vel),
+                                                0.01f, 0.1f, powerup_colors[e->powerup]);
                     ParticleAdd(&gs->particle_system, &p);
                 }
             } break;
@@ -184,7 +178,7 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
                 RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { 1.0f * light.r, 0.5f * light.g, 0, 1.0f });
             } break;
             case ENTITY_BULLET: {
-                v3 color = v3_Mul(powerup_colors[e->powerup].rgb, light);
+                v3 color = v3_Mul(powerup_colors[e->powerup], light);
                 RenderRect(e->pos, 0.1f, (v2) { e->rad, e->rad }, (v4) { color.r, color.g, color.b, 1.0f });
             } break;
             case ENTITY_ENEMY: {
@@ -222,16 +216,6 @@ static void GameRun(GameState* gs) {
     b32 game_running = true;
     
     GameInit(gs);
-    
-    Particle particle = {
-        .pos    = { 0.0f, 0.0f },
-        .vel    = { 0.1f, 0.1f },
-        .rad    = 0.1f,
-        .life   = 100.0f,
-        .col    = { 1.0f, 1.0f, 1.0f, 1.0f },
-    };
-    
-    ParticleAdd(&gs->particle_system, &particle);
     
     while (game_running && !platform.close) {
         f32 dt = platform.time_delta;

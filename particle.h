@@ -5,7 +5,10 @@ typedef struct Particle {
     v2      pos;
     v2      vel;
     f32     rad;
+    
     f32     life;
+    f32     max_life;
+    
     v4      col;
 } Particle;
 

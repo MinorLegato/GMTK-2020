@@ -7,16 +7,22 @@ static void ParticleRemove(ParticleSystem* ps, i32 index) {
     ps->particles[index] = ps->particles[--ps->count];
 }
 
+static Particle CreateParticle(v2 pos, v2 vel, f32 rad, f32 life, v3 col) {
+    Particle p = {
+        .pos      = pos,
+        .vel      = vel,
+        .rad      = rad,
+        .life     = life,
+        .max_life = life,
+        .col.rgb  = col
+    };
+    return p;
+}
+
 static void ParticleExplosion(ParticleSystem* ps, v2 pos, f32 max_rad, i32 amount, f32 max_speed) {
     for (int i = 0; i < amount; i++) {
-        Particle p = {0};
-        
-        p.pos  = pos;
-        p.vel  = v2_Rand(-max_speed, max_speed);
-        p.rad  = fRand(0.03f, max_rad);
-        p.life = fRand(0.5f, 1.0f);
-        p.col.rgb  = v3_Rand(0.0f, 1.0f);
-        p.col.a    = 1.0f;
+        Particle p = CreateParticle(pos, v2_Rand(-max_speed, max_speed), fRand(0.03f, max_rad),
+                                    fRand(0.5f, 1.0f), v3_Rand(0.0f, 1.0f));
         ParticleAdd(ps, &p);
     }
 }
@@ -43,6 +49,6 @@ static void ParticlesRender(const ParticleSystem* ps, const Map* map) {
         
         v3 color = v3_Mul(p->col.rgb, tile->light);
         
-        RenderRect(p->pos, 0.15f, (v2) { p->rad, p->rad }, (v4) { color.r, color.g, color.b, 1.0f });
+        RenderRect(p->pos, 0.15f, (v2) { p->rad, p->rad }, (v4) { color.r, color.g, color.b, p->life / p->max_life });
     }
 }
