@@ -26,18 +26,27 @@ enum BulletPowers_ {
     POWERUP_COUNT
 };
 
+static const char* powerup_name[] = {
+    [POWERUP_NONE]          = "GUN",
+    [POWERUP_SPEED]         = "MACHINE GUN",
+    [POWERUP_MELEE]         = "KNIFE",
+    [POWERUP_EXPLOSIVE]     = "ROCKET LAUNCHER",
+    [POWERUP_FIRE]          = "FLAMETHROWER",
+    [POWERUP_SHOTGUN]       = "SHOTGUN",
+};
+
 static f32 powerup_cooldowns[] = {
-    [POWERUP_NONE]       = 0.15f,
-    [POWERUP_SPEED]      = 0.15f,
-    [POWERUP_MELEE]      = 0.15f,
+    [POWERUP_NONE]       = 0.2f,
+    [POWERUP_SPEED]      = 0.1f,
+    [POWERUP_MELEE]      = 0.2f,
     [POWERUP_EXPLOSIVE]  = 0.5f,
     [POWERUP_FIRE]       = 0.2f,
     [POWERUP_SHOTGUN]    = 0.4f,
 };
 
 static v3 powerup_colors[] = {
-    [POWERUP_NONE]      = { 0.0f, 0.0f, 0.0f },
-    [POWERUP_SPEED]     = { 0.0f, 1.0f, 0.0f },
+    [POWERUP_NONE]      = { 0.6f, 0.6f, 0.0f },
+    [POWERUP_SPEED]     = { 0.4f, 1.0f, 0.0f },
     [POWERUP_EXPLOSIVE] = { 1.0f, 0.0f, 0.0f },
     [POWERUP_SHOTGUN]   = { 1.0f, 1.0f, 1.0f },
 };

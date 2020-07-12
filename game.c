@@ -98,17 +98,19 @@ static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
     } else {
         f32 speed = 5.0f;
         i32 shots = 1;
-        if (e->powerup == POWERUP_SPEED)        speed = 10.0f;
+
+        if      (e->powerup == POWERUP_SPEED)   speed = 10.0f;
         else if (e->powerup == POWERUP_SHOTGUN) shots = 5;
+
         for(int i = 0; i < shots; i++) {
             Entity p = {
-                .type = ENTITY_BULLET,
-                .pos = v2_Add(e->pos, v2_Scale(aim, 0.1f)),
-                .rad = 0.1f,
-                .life = 1.0f,
-                .powerup = e->powerup,
-                .owner_id  = e->id,
-                .vel = v2_Add(v2_Add(v2_Scale(aim, speed), e->vel), v2_Rand(-1.0f, 1.0f)),
+                .type       = ENTITY_BULLET,
+                .pos        = v2_Add(e->pos, v2_Scale(aim, 0.1f)),
+                .rad        = 0.1f,
+                .life       = 1.0f,
+                .powerup    = e->powerup,
+                .owner_id   = e->id,
+                .vel        = v2_Add(v2_Add(v2_Scale(aim, speed), e->vel), v2_Rand(-1.0f, 1.0f)),
             };
             
             EntityAdd(em, &p);
@@ -139,6 +141,9 @@ static v2 GetValidSpawnLocation(Map* map) {
 
 static f32 powerup_switch_cooldown = 0.0f;
 static f32 powerup_switch_cooldown_org = 0.0f;
+
+static f32 player_health;
+static i32 player_powerup;
 
 static void UpdateEntities(GameState* gs, f32 dt) {
     EntityManager*  em  = &gs->entity_manager;
@@ -240,10 +245,13 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 
                 cam->target = (v3) {
                     .xy = v2_Add(v2_Add(e->pos, v2_Scale(e->vel, 0.8f)), v2_Scale(mouse_vec, 0.3f)),
-                    ._z = 9.0f + fClampMax(v2_Len(e->vel), 2.0f),
+                    ._z = 8.0f + fClampMax(v2_Len(e->vel), 2.0f),
                 };
                 
                 UpdatePathToPlayer(map, e->pos.x, e->pos.y);
+
+                player_health   = e->life;
+                player_powerup  = e->powerup;
             } break;
             case ENTITY_BULLET: {
                 if (e->flags & ENTITY_FLAG_IMPACT && e->powerup != POWERUP_FIRE) {
@@ -376,6 +384,9 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
                     case POWERUP_SPEED: {
                         RenderTexture(usi_texture, weapon_pos, e->rad, v2_GetAngle((v2) { -1.0f, 0.0f }, e->aim), (v4) { light.r, light.g, light.b, 1.0f });
                     } break;
+                    case POWERUP_FIRE: {
+                        RenderTexture(flame_texture, weapon_pos, e->rad, v2_GetAngle((v2) { -1.0f, 0.0f }, e->aim), (v4) { light.r, light.g, light.b, 1.0f });
+                    } break;
                     case POWERUP_EXPLOSIVE: {
                         RenderTexture(launcher_texture, weapon_pos, e->rad, v2_GetAngle((v2) { -1.0f, 0.0f }, e->aim), (v4) { light.r, light.g, light.b, 1.0f });
                     } break;
@@ -384,12 +395,17 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
                     } break;
                 }
                 
-                RenderRect(v2_Add(e->pos, (v2) {0.0f, 0.5f}), 1.0f,
-                           (v2) {(powerup_switch_cooldown / powerup_switch_cooldown_org) * 0.3f, 0.05f }, (v4) { 0.0f, 0.0f, 1.0f, 1.0f });
-                RenderRect(v2_Add(e->pos, (v2) {0.0f, -0.5f}), 1.0f,
+#if 0
+                RenderRect(
+                        v2_Add(e->pos, (v2) {0.0f, 0.5f}), 1.0f,
+                        (v2) {(powerup_switch_cooldown / powerup_switch_cooldown_org) * 0.3f, 0.05f }, (v4) { 0.0f, 0.0f, 1.0f, 1.0f });
+
+                RenderRect(v2_Add(e->pos, (v2) { 0.0f, -0.5f }), 2.0f,
                            (v2) {(e->life / PLAYER_HEALTH) * 0.3f, 0.05f }, (v4) { 0.0f, 1.0f, .0f, 1.0f });
-                RenderRect(v2_Add(e->pos, (v2) {0.0f, -0.5f}), 1.0f,
+
+                RenderRect(v2_Add(e->pos, (v2) {0.0f, -0.5f}), 2.0f,
                            (v2) { 0.3f, 0.05f }, (v4) { 1.0f, 0.0f, .0f, 1.0f });
+#endif
             } break;
             case ENTITY_BULLET: {
                 if(e->powerup != POWERUP_FIRE) {
@@ -453,14 +469,11 @@ static void GameRun(GameState* gs) {
             GameInit(gs);
         }
         
-        if (platform.mouse_pressed[GLFW_MOUSE_BUTTON_RIGHT])
-            gs->map.tiles[(int)mouse_world_position.y][(int)mouse_world_position.x].heat = 2.0f;
-        
         {
             EntityManager* em = &gs->entity_manager;
             
             if (em->array[0].type == ENTITY_PLAYER && (enemy_spawn_cooldown -= dt) <= 0.0f) {
-                enemy_spawn_cooldown = 16.0f;
+                enemy_spawn_cooldown = 12.0f;
                 
                 v2 player_pos = em->array[0].pos;
                 
@@ -519,12 +532,24 @@ static void GameRun(GameState* gs) {
             
             glDisable(GL_DEPTH_TEST);
             
-            RenderStringFormat(cam->current.x - 8.0f, cam->current.y + 6.0f, 0.0f, 0.2f, -0.2f, 1.0f, 1.0f, 1.0f, 1.0f, "ms: %f", 1000.0f * dt);
-            
-            RenderStringFormat(cam->current.x + 8.0f, cam->current.y + 6.0f, 0.0f, 0.2f, -0.2f, 1.0f, 1.0f, 1.0f, 1.0f, "Kills: %d", zombies_killed);
+            RenderStringFormat(cam->current.x - 9.0f, cam->current.y + 6.0f, cam->current.z - 8.0f, 0.2f, -0.2f, 1.0f, 1.0f, 1.0f, 1.0f, "ms: %f", 1000.0f * dt);
+            RenderStringFormat(cam->current.x + 7.0f, cam->current.y + 6.0f, cam->current.z - 8.0f, 0.2f, -0.2f, 1.0f, 1.0f, 1.0f, 1.0f, "Kills: %d", zombies_killed);
+            RenderStringFormat(cam->current.x - 2.0f * 0.4f, cam->current.y + 6.0f, cam->current.z - 8.0f, 0.4f, -0.6f, 1.0f, 1.0f, 1.0f, 1.0f, "%.2f", powerup_switch_cooldown);
+
+            int name_len = strlen(powerup_name[player_powerup]);
+
+            RenderStringFormat(cam->current.x - 0.3f * 0.5f * name_len, cam->current.y + 5.0f, cam->current.z - 8.0f, 0.3f, -0.3f, 1.0f, 1.0f, 1.0f, 1.0f, powerup_name[player_powerup]);
             
             RenderTexture(aim_texture, (v3) { .xy = mouse_world_position.xy }, 0.15f, 0.5f * PI, (v4) { 1.0f, 1.0f, 1.0f, 1.0f });
-            
+
+            RenderRect(
+                    (v2) { cam->current.x + 0.0f, cam->current.y - 6.0f }, cam->current.z - 8.0f,
+                    (v2) { 4.5f, 0.05f }, (v4) { 1.0f, 0.0f, .0f, 1.0f });
+
+            RenderRect(
+                    (v2) { cam->current.x + 0.0f, cam->current.y - 6.0f }, cam->current.z - 8.0f,
+                    (v2) { (player_health / PLAYER_HEALTH) * 3.5f, 0.05f }, (v4) { 0.0f, 1.0f, .0f, 1.0f });
+           
             glEnable(GL_DEPTH_TEST);
         }
         
