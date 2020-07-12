@@ -10,8 +10,8 @@ enum ParticleType {
 typedef struct Particle {
     u32     type;
 
-    v2      pos;
-    v2      vel;
+    v3      pos;
+    v3      vel;
     f32     rad;
     
     f32     life;

@@ -33,7 +33,7 @@ typedef struct Map {
 } Map;
 
 static void MapInit     (Map* map);
-static void MapRender   (Map* map);
+static void MapRender   (Map* map, const Camera* cam);
 static void MapUpdate   (Map* map, ParticleSystem* ps, f32 dt);
 
 static void AddLight(Map* map, int source_x, int source_y, v3 light_color);

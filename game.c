@@ -157,7 +157,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 
                 Particle particle = {
                     .pos        = { e->pos.x + fRand(-e->rad, e->rad), e->pos.y + fRand(-e->rad, e->rad) },
-                    .vel        = v2_Rand(-2.0f, 2.0f),
+                    .vel        = { .xy = v2_Rand(-2.0f, 2.0f) },
                     .rad        = fRand(0.05f, 0.1f),
                     .life       = fRand(0.2f, 0.5f),
                     .max_life   = particle.life,
@@ -242,7 +242,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                     AddLight(map, e->pos.x, e->pos.y, (v3) { 1.0f, 1.0f, 0.0f });
                     Particle particle = {
                         .pos        = { e->pos.x + fRand(-0.2f, 0.2f), e->pos.y + fRand(-0.2f, 0.2f) },
-                        .vel        = v2_Rand(-2.0f, 2.0f),
+                        .vel        = { .xy = v2_Rand(-2.0f, 2.0f) },
                         .rad        = fRand(0.05f, 0.1f),
                         .life       = fRand(0.1f, 1.0f),
                         .max_life   = particle.life,
@@ -471,7 +471,7 @@ static void GameRun(GameState* gs) {
             glLoadIdentity();
         }
         
-        MapRender(&gs->map);
+        MapRender(&gs->map, &gs->camera);
         
         mouse_world_position = ToWorldPosition(
                                                iClamp(platform.mouse_position.x, 0, platform.width - 1),
@@ -489,7 +489,7 @@ static void GameRun(GameState* gs) {
             
             RenderStringFormat(cam->current.x + 8.0f, cam->current.y + 6.0f, 0.0f, 0.2f, -0.2f, 1.0f, 1.0f, 1.0f, 1.0f, "Kills: %d", zombies_killed);
             
-            RenderTexture(aim_texture, mouse_world_position, 0.1f, 0.5f * PI, (v4) { 1.0f, 1.0f, 1.0f, 1.0f });
+            RenderTexture(aim_texture, (v3) { .xy = mouse_world_position.xy }, 0.15f, 0.5f * PI, (v4) { 1.0f, 1.0f, 1.0f, 1.0f });
             
             glEnable(GL_DEPTH_TEST);
         }

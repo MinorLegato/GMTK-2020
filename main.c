@@ -39,7 +39,7 @@ int main(void) {
     PlatformInit("GMTK - 2020", 1200, 800);
     AudioInit();
 
-#if 0 // enable vsync
+#if 1 // enable vsync
     glfwSwapInterval(0);
 #endif
     

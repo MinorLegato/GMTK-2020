@@ -9,8 +9,8 @@ static void ParticleRemove(ParticleSystem* ps, i32 index) {
 
 static Particle CreateParticle(v2 pos, v2 vel, f32 rad, f32 life, v3 col) {
     Particle p = {
-        .pos      = pos,
-        .vel      = vel,
+        .pos      = { .xy = pos },
+        .vel      = { .xy = vel },
         .rad      = rad,
         .life     = life,
         .max_life = life,
@@ -39,8 +39,8 @@ static void BloodSpurter(ParticleSystem* ps, Entity* e, i32 amount) {
 
         Particle p = {
             .type       = PARTICLE_BLOOD,
-            .pos        = e->pos,
-            .vel        = v2_Add(v2_Scale(v2_Neg(e->aim), 2.0f), v2_Rand(-2.0f, 2.0f)),
+            .pos        = { .xy = e->pos },
+            .vel        = { .xy = v2_Add(v2_Scale(v2_Neg(e->aim), 2.0f), v2_Rand(-2.0f, 2.0f)) },
             .rad        = fRand(0.01f, 0.05f),
             .life       = fRand(0.5f, 1.0f),
             .max_life   = p.life,
@@ -57,8 +57,8 @@ static void BloodExplosion(ParticleSystem* ps, Entity* e, i32 amount) {
         
         Particle p = {
             .type       = PARTICLE_BLOOD,
-            .pos        = e->pos,
-            .vel        = v2_Rand(-3.0f, 3.0f),
+            .pos        = { .xy = e->pos },
+            .vel        = { .xy = v2_Rand(-3.0f, 3.0f) },
             .rad        = fRand(0.01f, 0.1f),
             .life       = fRand(0.5f, 1.0f),
             .max_life   = p.life,
@@ -103,7 +103,7 @@ static void ParticlesRender(const ParticleSystem* ps, const Map* map) {
         
         v3 color = v3_Mul(p->col.rgb, tile->light);
         
-        RenderRect(p->pos, 0.5f, (v2) { p->rad, p->rad }, (v4) { color.r, color.g, color.b, p->life / p->max_life });
+        RenderRect(p->pos.xy, 0.5f, (v2) { p->rad, p->rad }, (v4) { color.r, color.g, color.b, p->life / p->max_life });
     }
 }
 
