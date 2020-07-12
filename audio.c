@@ -12,6 +12,7 @@ enum AudioType {
     AUDIO_EXPLOSION,
     AUDIO_IMPACT,
     AUDIO_SCREAM,
+    AUDIO_FOOTSTEP,
     AUDIO_COUNT
 };
 
@@ -89,6 +90,15 @@ static void AudioInit(void) {
         audio.playing[AUDIO_SCREAM].volume_left  = 0.8f * AUDIO_MASTER;
         audio.playing[AUDIO_SCREAM].volume_right = 0.8f * AUDIO_MASTER;
     }
+
+    {
+        audio.loaded[AUDIO_FOOTSTEP]  = cs_load_wav("sound/sfx_movement_footstep1b.wav");
+        audio.playing[AUDIO_FOOTSTEP] = cs_make_def(&audio.loaded[AUDIO_FOOTSTEP]);
+
+        audio.playing[AUDIO_FOOTSTEP].volume_left  = 0.8f * AUDIO_MASTER;
+        audio.playing[AUDIO_FOOTSTEP].volume_right = 0.8f * AUDIO_MASTER;
+    }
+
 }
 
 static void AudioPlay(int audio_type) {

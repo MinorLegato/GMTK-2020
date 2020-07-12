@@ -4,8 +4,6 @@
 #define AIM_FRAME_WIDTH 9
 #define AIM_FRAME_HEIGHT 9
 
-/* Piskel data for "New Piskel" */
-
 static const uint32_t aim_pixel_data[1][81] = {
     {
         0x00000000, 0x00000000, 0x00000000, 0x00000000, 0xffffffff, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
