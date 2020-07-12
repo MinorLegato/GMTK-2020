@@ -1,8 +1,5 @@
 #include "ma_tool.h"
 
-#define CUTE_SOUND_IMPLEMENTATION
-#include "cute_sound.h"
-
 static v3 mouse_world_position;
 
 #include "player_texture.c"
@@ -10,6 +7,8 @@ static v3 mouse_world_position;
 #include "gun_texture.c"
 #include "knife_texture.c"
 #include "aim_texture.c"
+
+#include "audio.c"
 
 #include "render.h"
 
@@ -38,9 +37,10 @@ static void RenderMainMenu(void) {
 
 int main(void) {
     PlatformInit("GMTK - 2020", 1200, 800);
-    
+    AudioInit();
+
 #if 0 // enable vsync
-    glfwSwapInterval(0),
+    glfwSwapInterval(0);
 #endif
     
     glfwSetInputMode(platform.window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
@@ -79,6 +79,7 @@ int main(void) {
         
         RenderStringFormat(0.0f, 0.0f, -0.1f, 0.05f, -0.05f, 1.0f, 1.0f, 1.0f, 1.0f, "Hello, world!");
         
+        AudioUpdate();
         PlatformUpdate();
     }
 }
