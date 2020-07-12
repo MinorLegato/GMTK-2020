@@ -126,21 +126,21 @@ static void UpdateEntities(GameState* gs, f32 dt) {
     
     for (int i = 0; i < em->count; ++i) {
         Entity* e = &em->array[i];
-
+        
         // handle fire
         {
             e->fire = fClampMin(e->fire - dt, 0.0f);
-
+            
             Tile* tile = &map->tiles[(int)e->pos.y][(int)e->pos.x];
-
+            
             if (tile->heat >= 1.0f) {
                 e->fire = 1.0f;
             }
-
+            
             if (e->fire > 0.0f) {
                 e->life     -= dt;
                 tile->heat  += 0.3f * dt;
-
+                
                 Particle particle = {
                     .pos        = { e->pos.x + fRand(-e->rad, e->rad), e->pos.y + fRand(-e->rad, e->rad) },
                     .vel        = v2_Rand(-2.0f, 2.0f),
@@ -149,7 +149,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                     .max_life   = particle.life,
                     .col        = { 1.0f, 0.5f, 0.0f, 1.0f },
                 };
-
+                
                 ParticleAdd(ps, &particle);
             }
         }
@@ -219,9 +219,24 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 
                 e->life -= dt;
                 
-                for(int loop = 0; loop < 10; loop++) {
-                    Particle p = CreateParticle(e->pos, v2_Sub(v2_Rand(-5.0f, 5.0f), e->vel), 0.01f, 0.1f, powerup_colors[e->powerup]);
-                    ParticleAdd(&gs->particle_system, &p);
+                if(e->powerup == POWERUP_FIRE) {
+                    AddLight(map, e->pos.x, e->pos.y, (v3) { 1.0f, 1.0f, 0.0f });
+                    Particle particle = {
+                        .pos        = { e->pos.x + fRand(-0.2f, 0.2f), e->pos.y + fRand(-0.2f, 0.2f) },
+                        .vel        = v2_Rand(-2.0f, 2.0f),
+                        .rad        = fRand(0.05f, 0.1f),
+                        .life       = fRand(0.1f, 1.0f),
+                        .max_life   = particle.life,
+                        .col        = { 1.0f, 0.5f, 0.0f, 1.0f },
+                    };
+                    
+                    ParticleAdd(ps, &particle);
+                }
+                else {
+                    for(int loop = 0; loop < 10; loop++) {
+                        Particle p = CreateParticle(e->pos, v2_Sub(v2_Rand(-5.0f, 5.0f), e->vel), 0.01f, 0.1f, powerup_colors[e->powerup]);
+                        ParticleAdd(&gs->particle_system, &p);
+                    }
                 }
             } break;
             case ENTITY_ENEMY: {
@@ -258,6 +273,9 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 if(e->powerup == POWERUP_EXPLOSIVE) {
                     ParticleExplosion(&gs->particle_system, e->pos, 0.05f, 1000, 5.0f);
                     EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_AREA_DMG, .pos = e->pos, .rad = 1.0f, .life = 0.1f });
+                }
+                if(e->powerup == POWERUP_FIRE) {
+                    map->tiles[(i32)e->pos.y][(i32)e->pos.x].heat = 1.5f;
                 }
             }
             else if(e->type == ENTITY_CORPSE) {
@@ -301,8 +319,10 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
                            (v2) {(powerup_switch_cooldown / powerup_switch_cooldown_org) * 0.3f, 0.05f }, (v4) { 0.0f, 0.0f, 1.0f, 1.0f });
             } break;
             case ENTITY_BULLET: {
-                v3 color = v3_Mul(powerup_colors[e->powerup], light);
-                RenderRect(e->pos, 0.3f, (v2) { e->rad, e->rad }, (v4) { color.r, color.g, color.b, 1.0f });
+                if(e->powerup != POWERUP_FIRE) {
+                    v3 color = v3_Mul(powerup_colors[e->powerup], light);
+                    RenderRect(e->pos, 0.3f, (v2) { e->rad, e->rad }, (v4) { color.r, color.g, color.b, 1.0f });
+                }
             } break;
             case ENTITY_ENEMY: {
                 RenderTexture(zombie_texture, (v3) { e->pos.x, e->pos.y, 0.3f }, e->rad, 0.1f * sinf(speed * platform.time_total), (v4) { light.r, light.g, light.b, 1.0f });
@@ -359,7 +379,7 @@ static void GameRun(GameState* gs) {
         
         if (platform.mouse_pressed[GLFW_MOUSE_BUTTON_RIGHT])
             gs->map.tiles[(int)mouse_world_position.y][(int)mouse_world_position.x].heat = 2.0f;
-
+        
         {
             EntityManager* em = &gs->entity_manager;
             
