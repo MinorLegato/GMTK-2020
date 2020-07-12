@@ -31,7 +31,7 @@ static void RenderMainMenu(void) {
 int main(void) {
     PlatformInit("GMTK - 2020", 1200, 800);
 
-#if 1 // enable vsync
+#if 0 // enable vsync
     glfwSwapInterval(0),
 #endif
     

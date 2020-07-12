@@ -194,13 +194,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 
                 if (shoot) {
                     CreateBullet(em, e, e->aim);
-                    
-#if 0
-                    if (e->powerup == POWERUP_MELEE) {
-                        ParticleExplosion(&gs->particle_system, v2_Add(e->pos, v2_Scale(e->aim, 0.5f)), 0.05f, 20, 5.0f);
-                    }
-#endif
-                    
+
                     e->cooldown = powerup_cooldowns[e->powerup];
                 }
                 
