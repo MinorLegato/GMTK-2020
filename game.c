@@ -293,7 +293,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                     map->tiles[(i32)e->pos.y][(i32)e->pos.x].heat = 1.5f;
                 }
             }
-            else if(e->type == ENTITY_CORPSE) {
+            else if (e->type == ENTITY_CORPSE) {
                 BloodExplosion(&gs->particle_system, e, 100);
             }
             else if(e->type == ENTITY_PLAYER) {
