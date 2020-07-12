@@ -164,7 +164,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
         switch (e->type) {
             case ENTITY_PLAYER: {
                 v2 acc = {0};
-                if(e->life < PLAYER_HEALTH) e->life += dt;
+                if(e->life < PLAYER_HEALTH) e->life += dt * 0.1f;
                 e->cooldown -= dt;
                 if(powerup_switch_cooldown <= 0.0f) {
                     e->powerup = iRand(0, POWERUP_COUNT);
@@ -183,10 +183,10 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 
                 if (e->powerup != POWERUP_MELEE) {
                     e->aim = v2_Scale(v2_Norm(mouse_vec),
-                            fClamp(fLerp(0.5, 1.0f, 1.0f - e->cooldown / powerup_cooldowns[e->powerup]), 0.5f, 1.0f));
+                                      fClamp(fLerp(0.5, 1.0f, 1.0f - e->cooldown / powerup_cooldowns[e->powerup]), 0.5f, 1.0f));
                 } else {
                     e->aim = v2_Scale(v2_Norm(mouse_vec),
-                            fClamp(fLerp(1.0, 1.5f, e->cooldown / powerup_cooldowns[e->powerup]), 1.0f, 1.5f));
+                                      fClamp(fLerp(1.0, 1.5f, e->cooldown / powerup_cooldowns[e->powerup]), 1.0f, 1.5f));
                 }
                 
                 if (platform.mouse_down[GLFW_MOUSE_BUTTON_LEFT] && e->cooldown <= 0.0f) {
@@ -196,7 +196,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 
                 if (shoot) {
                     CreateBullet(em, e, e->aim);
-
+                    
                     e->cooldown = powerup_cooldowns[e->powerup];
                 }
                 
@@ -332,7 +332,7 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
                 } else {
                     RenderTexture(knife_texture, weapon_pos, e->rad, v2_GetAngle((v2) { -1.0f, 0.0f }, e->aim), (v4) { light.r, light.g, light.b, 1.0f });
                 }
-
+                
                 RenderRect(v2_Add(e->pos, (v2) {0.0f, 0.5f}), 1.0f,
                            (v2) {(powerup_switch_cooldown / powerup_switch_cooldown_org) * 0.3f, 0.05f }, (v4) { 0.0f, 0.0f, 1.0f, 1.0f });
                 RenderRect(v2_Add(e->pos, (v2) {0.0f, -0.5f}), 1.0f,
@@ -471,7 +471,6 @@ static void GameRun(GameState* gs) {
             
             RenderStringFormat(cam->current.x + 8.0f, cam->current.y + 6.0f, 0.0f, 0.2f, -0.2f, 1.0f, 1.0f, 1.0f, 1.0f, "Kills: %d", zombies_killed);
             
-            //RenderRect(mouse_world_position.xy, 0.0f, (v2) {0.1f, 0.1f}, (v4) { 1.0f, 1.0f, 1.0f, 1.0f });
             RenderTexture(aim_texture, mouse_world_position, 0.1f, 0.5f * PI, (v4) { 1.0f, 1.0f, 1.0f, 1.0f });
             
             glEnable(GL_DEPTH_TEST);

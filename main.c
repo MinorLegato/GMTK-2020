@@ -55,7 +55,7 @@ int main(void) {
     zombie_texture  = TextureCreate((unsigned char*)zombie_pixel_data,  ZOMBIE_FRAME_WIDTH, ZOMBIE_FRAME_HEIGHT, false);
     gun_texture     = TextureCreate((unsigned char*)gun_pixel_data,     GUN_FRAME_WIDTH,    GUN_FRAME_HEIGHT,    false);
     knife_texture   = TextureCreate((unsigned char*)knife_pixel_data,   KNIFE_FRAME_WIDTH,  KNIFE_FRAME_HEIGHT,  false);
-    aim_texture     = TextureCreate((unsigned char*)aim_pixel_data,     AIM_FRAME_WIDTH,    AIM_FRAME_HEIGHT,  false);
+    aim_texture     = TextureCreate((unsigned char*)aim_pixel_data,     AIM_FRAME_WIDTH,    AIM_FRAME_HEIGHT,    false);
     
     GameState* gs = calloc(1, sizeof (GameState));
     
