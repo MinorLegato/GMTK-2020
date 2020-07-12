@@ -38,7 +38,6 @@ static v3 powerup_colors[] = {
     [POWERUP_NONE]      = { 0.0f, 0.0f, 0.0f },
     [POWERUP_SPEED]     = { 0.0f, 1.0f, 0.0f },
     [POWERUP_EXPLOSIVE] = { 1.0f, 0.0f, 0.0f },
-    [POWERUP_FIRE]      = { 1.0f, 1.0f, 0.0f },
     [POWERUP_SHOTGUN]   = { 1.0f, 1.0f, 1.0f },
 };
 
@@ -66,7 +65,7 @@ typedef struct Entity {
     
     i32         powerup;
     f32         cooldown;
-
+    
     f32         fire;
     
     u32         owner_id;
