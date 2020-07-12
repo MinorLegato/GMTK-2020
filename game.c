@@ -344,11 +344,20 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
                 v3 weapon_pos = v3_Add(player_pos, (v3) { .xy = v2_Scale(e->aim, 0.4f), ._z = 0.1f });
                 
                 RenderTexture(player_texture, player_pos, e->rad, 0.1f * sinf(speed * platform.time_total),  (v4) { light.r, light.g, light.b, 1.0f });
-                
-                if (e->powerup != POWERUP_MELEE) {
-                    RenderTexture(gun_texture, weapon_pos, e->rad, v2_GetAngle((v2) { -1.0f, 0.0f }, e->aim), (v4) { light.r, light.g, light.b, 1.0f });
-                } else {
-                    RenderTexture(knife_texture, weapon_pos, e->rad, v2_GetAngle((v2) { -1.0f, 0.0f }, e->aim), (v4) { light.r, light.g, light.b, 1.0f });
+
+                switch (e->powerup) {
+                    default: {
+                        RenderTexture(gun_texture, weapon_pos, e->rad, v2_GetAngle((v2) { -1.0f, 0.0f }, e->aim), (v4) { light.r, light.g, light.b, 1.0f });
+                    } break;
+                    case POWERUP_SPEED: {
+                        RenderTexture(usi_texture, weapon_pos, e->rad, v2_GetAngle((v2) { -1.0f, 0.0f }, e->aim), (v4) { light.r, light.g, light.b, 1.0f });
+                    } break;
+                    case POWERUP_EXPLOSIVE: {
+                        RenderTexture(launcher_texture, weapon_pos, e->rad, v2_GetAngle((v2) { -1.0f, 0.0f }, e->aim), (v4) { light.r, light.g, light.b, 1.0f });
+                    } break;
+                    case POWERUP_MELEE: {
+                        RenderTexture(knife_texture, weapon_pos, e->rad, v2_GetAngle((v2) { -1.0f, 0.0f }, e->aim), (v4) { light.r, light.g, light.b, 1.0f });
+                    } break;
                 }
                 
                 RenderRect(v2_Add(e->pos, (v2) {0.0f, 0.5f}), 1.0f,
