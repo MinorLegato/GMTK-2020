@@ -113,11 +113,12 @@ static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
     }
     
     switch (e->powerup) {
-        case POWERUP_NONE:      AudioPlay(AUDIO_GUN_0);     break;
-        case POWERUP_SPEED:     AudioPlay(AUDIO_GUN_1);     break;
-        case POWERUP_SHOTGUN:   AudioPlay(AUDIO_SHOTGUN);   break;
-        case POWERUP_MELEE:     AudioPlay(AUDIO_KNIFE);     break;
-        case POWERUP_EXPLOSIVE: AudioPlay(AUDIO_MISSILE);   break;
+        case POWERUP_NONE:      AudioPlay(AUDIO_GUN_0);        break;
+        case POWERUP_SPEED:     AudioPlay(AUDIO_GUN_1);        break;
+        case POWERUP_SHOTGUN:   AudioPlay(AUDIO_SHOTGUN);      break;
+        case POWERUP_FIRE:      AudioPlay(AUDIO_FLAMETHROWER); break;
+        case POWERUP_MELEE:     AudioPlay(AUDIO_KNIFE);        break;
+        case POWERUP_EXPLOSIVE: AudioPlay(AUDIO_MISSILE);      break;
     }
 }
 
