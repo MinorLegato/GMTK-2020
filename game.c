@@ -169,6 +169,8 @@ static void UpdateEntities(GameState* gs, f32 dt) {
         
         b32 shoot = false;
         
+        static f32 player_footstep = 0.0f;
+
         switch (e->type) {
             case ENTITY_PLAYER: {
                 v2 acc = {0};
@@ -189,7 +191,9 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 
                 v2 mouse_vec = v2_Sub(mouse_world_position.xy, e->pos);
                 
-                if (v2_Len(e->vel) >= 0.1f) {
+                if ((player_footstep -= dt) < 0.0f && v2_Len(e->vel) >= 1.0f) {
+                    player_footstep = 0.3f;
+
                     AudioPlay(AUDIO_FOOTSTEP);
                 }
 
