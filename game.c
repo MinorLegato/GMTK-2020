@@ -122,16 +122,17 @@ static void UpdateEntities(GameState* gs, f32 dt) {
         powerup_switch_cooldown = fRand(2.0f, 10.0f);
         powerup_switch_cooldown_org = powerup_switch_cooldown;
     }
+
     powerup_switch_cooldown -= dt;
     
     for (int i = 0; i < em->count; ++i) {
         Entity* e = &em->array[i];
 
+        Tile* tile = &map->tiles[(int)e->pos.y][(int)e->pos.x];
+
         // handle fire
         {
             e->fire = fClampMin(e->fire - dt, 0.0f);
-
-            Tile* tile = &map->tiles[(int)e->pos.y][(int)e->pos.x];
 
             if (tile->heat >= 1.0f) {
                 e->fire = 1.0f;
@@ -187,9 +188,11 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 if (shoot) {
                     CreateBullet(em, e, e->aim);
 
+#if 0
                     if (e->powerup == POWERUP_MELEE) {
                         ParticleExplosion(&gs->particle_system, v2_Add(e->pos, v2_Scale(e->aim, 0.5f)), 0.05f, 20, 5.0f);
                     }
+#endif
                     
                     e->cooldown = powerup_cooldowns[e->powerup];
                 }
@@ -266,6 +269,8 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 if(e->powerup == POWERUP_EXPLOSIVE) {
                     ParticleExplosion(&gs->particle_system, e->pos, 0.05f, 1000, 5.0f);
                     EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_AREA_DMG, .pos = e->pos, .rad = 1.0f, .life = 0.1f });
+
+                    tile->heat = 2.0f;
                 }
             }
             else if(e->type == ENTITY_CORPSE) {
