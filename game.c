@@ -144,7 +144,7 @@ static f32 powerup_switch_cooldown_org = 0.0f;
 
 static f32 player_health;
 static i32 player_powerup;
-static i32 player_dodge_cooldown;
+static f32 player_dodge_cooldown;
 
 static void UpdateEntities(GameState* gs, f32 dt) {
     EntityManager*  em  = &gs->entity_manager;
@@ -190,7 +190,9 @@ static void UpdateEntities(GameState* gs, f32 dt) {
         }
         
         b32 shoot = false;
-        
+                
+        player_dodge_cooldown = fClampMin(player_dodge_cooldown - dt, 0.0f);
+
         switch (e->type) {
             case ENTITY_PLAYER: {
                 v2 acc = {0};
@@ -210,8 +212,10 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 if (platform.key_down[GLFW_KEY_S]) acc.y -= 1.0f;
                 if (platform.key_down[GLFW_KEY_A]) acc.x -= 1.0f;
                 if (platform.key_down[GLFW_KEY_D]) acc.x += 1.0f;
-                
-                if (platform.key_pressed[GLFW_KEY_SPACE]) {
+
+                if (player_dodge_cooldown <= 0.0f && platform.key_pressed[GLFW_KEY_SPACE]) {
+                    player_dodge_cooldown = 0.2f;
+
                     EntityPush(e, v2_Scale(v2_Norm(acc), 4.0f));
                 }
                 
