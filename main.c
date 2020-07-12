@@ -44,7 +44,7 @@ static Texture health_pack_texture;
 #include "game.c"
 
 int main(void) {
-    PlatformInit("GMTK - 2020", 1200, 800);
+    PlatformInit("GMTK - 2020", 1600, 900);
     AudioInit();
     
 #if 0 // enable vsync

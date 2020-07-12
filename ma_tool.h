@@ -1156,9 +1156,16 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 
 void PlatformInit(const char* title, i32 width, i32 height) {
     glfwInit();
-    
+
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+
+    int w_x, w_y, w_width, w_height;
+    glfwGetMonitorWorkarea(monitor, &w_x, &w_y, &w_width, &w_height);
+
     platform.window = glfwCreateWindow(width, height, title, NULL, NULL);
     glfwMakeContextCurrent(platform.window);
+
+    glfwSetWindowPos(platform.window, (w_width / 2) - (width / 2), (w_height / 2) - (height / 2));
     
     glfwSetKeyCallback(platform.window, KeyCallback);
     glfwSetMouseButtonCallback(platform.window, MouseButtonCallback);
