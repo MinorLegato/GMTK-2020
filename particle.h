@@ -1,7 +1,15 @@
 
 #define PARTICLE_MAX 1024 * 64
 
+enum ParticleType {
+    PARTICLE_NONE,
+    PARTICLE_BLOOD,
+    PARTICLE_COUNT
+};
+
 typedef struct Particle {
+    u32     type;
+
     v2      pos;
     v2      vel;
     f32     rad;

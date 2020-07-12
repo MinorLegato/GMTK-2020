@@ -7,6 +7,7 @@ static v3 mouse_world_position;
 #include "gun_texture.c"
 #include "knife_texture.c"
 
+#include "render.h"
 #include "camera.h"
 #include "map.h"
 #include "entity.h"
@@ -26,6 +27,10 @@ static void RenderMainMenu(void) {
 
 int main(void) {
     PlatformInit("GMTK - 2020", 1200, 800);
+
+#if 0 // enable vsync
+    glfwSwapInterval(0),
+#endif
     
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
@@ -40,6 +45,8 @@ int main(void) {
 
     GameState* gs = calloc(1, sizeof (GameState));
     
+    blood_texture = TextureCreateV4(gs->map.blood, BLOOD_MAP_WIDTH, BLOOD_MAP_HEIGHT, false);
+
     while (!platform.close) {
         if (platform.key_pressed[GLFW_KEY_ENTER])
             GameRun(gs);

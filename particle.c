@@ -36,8 +36,17 @@ static void ParticleExplosion(ParticleSystem* ps, v2 pos, f32 max_rad, i32 amoun
 static void BloodSpurter(ParticleSystem* ps, Entity* e, i32 amount) {
     for (int i = 0; i < amount; i++) {
         v3 color = { .r = fRand(0.3f, 1.0f) };
-        Particle p = CreateParticle(e->pos, v2_Add(v2_Scale(v2_Neg(e->aim), 2.0f), v2_Rand(-2.0f, 2.0f)),
-                                    fRand(0.01f, 0.05f), fRand(0.5f, 1.0f), color);
+
+        Particle p = {
+            .type       = PARTICLE_BLOOD,
+            .pos        = e->pos,
+            .vel        = v2_Add(v2_Scale(v2_Neg(e->aim), 2.0f), v2_Rand(-2.0f, 2.0f)),
+            .rad        = fRand(0.01f, 0.05f),
+            .life       = fRand(0.5f, 1.0f),
+            .max_life   = p.life,
+            .col        = { .rgb = color },
+        };
+
         ParticleAdd(ps, &p);
     }
 }
@@ -45,15 +54,25 @@ static void BloodSpurter(ParticleSystem* ps, Entity* e, i32 amount) {
 static void BloodExplosion(ParticleSystem* ps, Entity* e, i32 amount) {
     for (int i = 0; i < amount; i++) {
         v3 color = { .r = fRand(0.3f, 1.0f) };
-        Particle p = CreateParticle(e->pos, v2_Rand(-3.0f, 3.0f), fRand(0.01f, 0.1f),
-                                    fRand(0.5f, 1.0f), color);
+        
+        Particle p = {
+            .type       = PARTICLE_BLOOD,
+            .pos        = e->pos,
+            .vel        = v2_Rand(-3.0f, 3.0f),
+            .rad        = fRand(0.01f, 0.1f),
+            .life       = fRand(0.5f, 1.0f),
+            .max_life   = p.life,
+            .col        = { .rgb = color },
+        };
+
         ParticleAdd(ps, &p);
     }
 }
 
 static void ParticlesUpdate(GameState* gs, f32 t) {
-    ParticleSystem* ps = &gs->particle_system;
-    Map* map = &gs->map;
+    ParticleSystem*     ps      = &gs->particle_system;
+    Map*                map     = &gs->map;
+
     for(int i = 0; i < ps->count; i++) {
         Particle* p = &ps->particles[i];
         
@@ -66,6 +85,10 @@ static void ParticlesUpdate(GameState* gs, f32 t) {
         if (map->tiles[(i32)(p->pos.y)][(i32)(p->pos.x - p->rad)].type == TILE_WALL) { p->vel.x = 0.0f; p->pos.x = floorf(p->pos.x) + p->rad; }
         if (map->tiles[(i32)(p->pos.y)][(i32)(p->pos.x + p->rad)].type == TILE_WALL) { p->vel.x = 0.0f; p->pos.x = ceilf(p->pos.x)  - p->rad; }
         
+        if (p->type == PARTICLE_BLOOD && p->life < 0.1f) {
+            AddBlood(map, p->pos.x, p->pos.y, p->rad, p->col);
+        }
+
         if (p->life <= 0.0f) {
             ParticleRemove(ps, i);
             i--;

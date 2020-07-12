@@ -45,6 +45,26 @@ static void MapRender(Map* map) {
             }
         }
     }
+
+    {
+        glLoadIdentity();
+
+        glEnable(GL_TEXTURE_2D);
+        TextureUpdateV4(blood_texture, map->blood, false);
+
+        glBegin(GL_QUADS);
+
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(0.0f,      0.0f,       0.1f);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(MAP_WIDTH, 0.0f,       0.1f);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(MAP_WIDTH, MAP_HEIGHT, 0.1f);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(0.0f,      MAP_HEIGHT, 0.1f);
+
+        glEnd();
+
+        glDisable(GL_TEXTURE_2D);
+    }
 }
 
 static void MapUpdate(Map* map, ParticleSystem* ps, f32 dt) {
@@ -88,6 +108,35 @@ static void MapUpdate(Map* map, ParticleSystem* ps, f32 dt) {
                 }
             } else if (tile->heat > 1.0f) {
                 tile->fire = 2.0f;
+            }
+        }
+    }
+
+    for (int y = 0; y < BLOOD_MAP_HEIGHT; ++y) {
+        for (int x = 0; x < BLOOD_MAP_WIDTH; ++x) {
+            v4* blood = &map->blood[y][x];
+
+            blood->a = fLerp(blood->a, 0.1f, dt);
+
+            int     count = 0;
+            v4      color = {0};
+
+            for (int i = 0; i < 4; ++i) {
+                int nx = x + (int[]) { -1, 1, 0, 0 } [i];
+                int ny = y + (int[]) { 0, 0, -1, 1 } [i];
+
+                if (nx < 0 || nx >= BLOOD_MAP_WIDTH || ny < 0 || ny >= BLOOD_MAP_HEIGHT) continue;
+
+                v4 n = map->blood[ny][nx];
+
+                if (n.a > 0.1f) {
+                    color = v4_Add(color, n);
+                    count++;
+                }
+            }
+
+            if (count > 2) {
+                *blood = v4_Scale(color, 1.0f / count);
             }
         }
     }
@@ -146,6 +195,23 @@ static void AddLight(Map* map, int source_x, int source_y, v3 light_color) {
 
             closed[ny][nx]  = true;
             queue[end++]    = (Node) { nx, ny, new_light };
+        }
+    }
+}
+
+static void AddBlood(Map* map, f32 px, f32 py, f32 rad, v4 color) {
+    int blood_x     = px * BLOOD_SIZE;
+    int blood_y     = py * BLOOD_SIZE;
+    int blood_rad   = BLOOD_SIZE * rad;
+
+    int sx = iClampMin(blood_x - blood_rad, 0);
+    int sy = iClampMin(blood_y - blood_rad, 0);
+    int ex = iClampMax(blood_x + blood_rad, BLOOD_MAP_WIDTH  - 1);
+    int ey = iClampMax(blood_y + blood_rad, BLOOD_MAP_HEIGHT - 1);
+
+    for (int y = sy; y <= ey; ++y) {
+        for (int x = sx; x <= ex; ++x) {
+            map->blood[y][x] = (v4) { color.r, color.g, color.b, 0.3f };
         }
     }
 }

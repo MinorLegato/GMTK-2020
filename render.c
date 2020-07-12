@@ -69,13 +69,7 @@ static void RenderBox(v3 pos, v3 scale, v4 col) {
     glEnd();
 }
 
-typedef struct Texture {
-    u32     id;
-    int     width;
-    int     height;
-} Texture;
-
-static Texture TextureCreate(unsigned char *pixels, int width, int height, int is_smooth) {
+static Texture TextureCreate(const void* pixels, int width, int height, int is_smooth) {
     Texture texture  = {0};
 
     texture.width   = width;
@@ -91,7 +85,28 @@ static Texture TextureCreate(unsigned char *pixels, int width, int height, int i
     return texture;
 }
 
-extern void TextureBind(const Texture* texture) {
+static Texture TextureCreateV4(const void* pixels, int width, int height, int is_smooth) {
+    Texture texture  = {0};
+
+    texture.width   = width;
+    texture.height  = height;
+
+    glGenTextures(1, &texture.id);
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_FLOAT, pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+
+    return texture;
+}
+
+static void TextureUpdateV4(Texture texture, const void* pixels, int is_smooth) {
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_FLOAT, pixels);
+}
+
+static void TextureBind(const Texture* texture) {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
     glMatrixMode(GL_TEXTURE);
@@ -432,7 +447,7 @@ static void BitmapInit(void) {
     }
 }
 
-extern void RenderAscii(unsigned char c, f32 px, f32 py, f32 pz, f32 x_scale, f32 y_scale, f32 r, f32 g, f32 b, f32 a) {
+static void RenderAscii(unsigned char c, f32 px, f32 py, f32 pz, f32 x_scale, f32 y_scale, f32 r, f32 g, f32 b, f32 a) {
     glColor4f(r, g, b, a);
 
     f32 T[16];
@@ -442,13 +457,13 @@ extern void RenderAscii(unsigned char c, f32 px, f32 py, f32 pz, f32 x_scale, f3
     glCallList(bitmap_display_list[c]);
 }
 
-extern void RenderString(const char *str, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a) {
+static void RenderString(const char *str, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a) {
     for (int i = 0; str[i] != '\0'; i++) {
         RenderAscii(str[i], x + i * scale_x, y, z, scale_x, scale_y, r, g, b, a);
     }
 }
 
-extern void RenderStringFormat(f32 x, f32 y, f32 z, f32 rad_x, f32 rad_y, f32 r, f32 g, f32 b, f32 a, const char* fmt, ...) {
+static void RenderStringFormat(f32 x, f32 y, f32 z, f32 rad_x, f32 rad_y, f32 r, f32 g, f32 b, f32 a, const char* fmt, ...) {
     va_list list;
     char    buffer[256];
 
@@ -460,19 +475,19 @@ extern void RenderStringFormat(f32 x, f32 y, f32 z, f32 rad_x, f32 rad_y, f32 r,
     va_end(list);
 }
 
-extern void RenderInt(int n, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a) {
+static void RenderInt(int n, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a) {
     char buffer[32];
     sprintf(buffer, "%d", n);
     RenderString(buffer, x, y, z, scale_x, scale_y, r, g, b, a);
 }
 
-extern void RenderF32(f32 n, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a) {
+static void RenderF32(f32 n, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a) {
     char buffer[32];
     sprintf(buffer, "%.1f", n);
     RenderString(buffer, x, y, z, scale_x, scale_y, r, g, b, a);
 }
 
-extern void RenderStringBox(const char* str, f32 x, f32 y, f32 z, f32 w, f32 h, f32 r, f32 g, f32 b, f32 a) {
+static void RenderStringBox(const char* str, f32 x, f32 y, f32 z, f32 w, f32 h, f32 r, f32 g, f32 b, f32 a) {
     int   slen = strlen(str);
     f32 x_scale = w / ((f32)slen * 8.0f);
     f32 y_scale = h / 8.0f;
@@ -482,7 +497,7 @@ extern void RenderStringBox(const char* str, f32 x, f32 y, f32 z, f32 w, f32 h, 
     }
 }
 
-extern void RenderNumberBox(int n, f32 x, f32 y, f32 z, f32 w, f32 h, f32 r, f32 g, f32 b, f32 a) {
+static void RenderNumberBox(int n, f32 x, f32 y, f32 z, f32 w, f32 h, f32 r, f32 g, f32 b, f32 a) {
     char buffer[32];
     sprintf(buffer, "%d", n);
     RenderStringBox(buffer, x, y, z, w, h, r, g, b, a);
