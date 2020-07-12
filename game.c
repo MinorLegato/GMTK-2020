@@ -169,8 +169,6 @@ static void UpdateEntities(GameState* gs, f32 dt) {
         }
         
         b32 shoot = false;
-        
-        static f32 player_footstep = 0.0f;
 
         switch (e->type) {
             case ENTITY_PLAYER: {
@@ -191,13 +189,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 }
                 
                 v2 mouse_vec = v2_Sub(mouse_world_position.xy, e->pos);
-                
-                if ((player_footstep -= dt) < 0.0f && v2_Len(e->vel) >= 1.0f) {
-                    player_footstep = 0.3f;
-
-                    AudioPlay(AUDIO_FOOTSTEP);
-                }
-
+               
                 if (e->powerup != POWERUP_MELEE) {
                     e->aim = v2_Scale(v2_Norm(mouse_vec),
                                       fClamp(fLerp(0.5, 1.0f, 1.0f - e->cooldown / powerup_cooldowns[e->powerup]), 0.5f, 1.0f));
@@ -228,7 +220,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 
                 cam->target = (v3) {
                     .xy = v2_Add(v2_Add(e->pos, v2_Scale(e->vel, 0.8f)), v2_Scale(mouse_vec, 0.3f)),
-                    ._z = 12.0f + fClampMax(v2_Len(e->vel), 4.0f),
+                    ._z = 9.0f + fClampMax(v2_Len(e->vel), 2.0f),
                 };
                 
                 UpdatePathToPlayer(map, e->pos.x, e->pos.y);
@@ -434,7 +426,7 @@ static void GameRun(GameState* gs) {
             EntityManager* em = &gs->entity_manager;
             
             if (em->array[0].type == ENTITY_PLAYER && (enemy_spawn_cooldown -= dt) <= 0.0f) {
-                enemy_spawn_cooldown = 8.0f;
+                enemy_spawn_cooldown = 16.0f;
                 
                 v2 player_pos = em->array[0].pos;
                 
@@ -469,7 +461,7 @@ static void GameRun(GameState* gs) {
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
             
-            gluPerspective(60.0f, platform.aspect, 0.1f, cam->current.z + 8.0f);
+            gluPerspective(80.0f, platform.aspect, 0.1f, cam->current.z + 8.0f);
             gluLookAt(
                       cam->current.x, cam->current.y, cam->current.z,
                       cam->current.x, cam->current.y, 0.0f,

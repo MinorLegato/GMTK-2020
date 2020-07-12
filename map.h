@@ -1,6 +1,6 @@
 
-#define MAP_WIDTH   (32)
-#define MAP_HEIGHT  (32)
+#define MAP_WIDTH   (64)
+#define MAP_HEIGHT  (64)
 
 #define BLOOD_SIZE          (16)
 #define BLOOD_MAP_WIDTH     (BLOOD_SIZE * MAP_WIDTH)

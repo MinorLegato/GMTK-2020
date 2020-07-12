@@ -30,6 +30,15 @@ static v3 GetWallLight(Map* map, int x, int y) {
     return v3_Scale(result, 1.0f / 4.0f);
 }
 
+static void RenderTree(int x, int y, v3 light) {
+    RenderSquareRot(x + 0.5f, y + 0.5f, 0.4f, 0.5f, 0.25f * PI, v3_Scale(light, 0.2f));
+    RenderSquareRot(x + 0.5f, y + 0.5f, 0.6f, 0.4f, 0.25f * PI, v3_Scale(light, 0.4f));
+    RenderSquareRot(x + 0.5f, y + 0.5f, 0.8f, 0.3f, 0.25f * PI, v3_Scale(light, 0.6f));
+    RenderSquareRot(x + 0.5f, y + 0.5f, 1.0f, 0.2f, 0.25f * PI, v3_Scale(light, 0.8f));
+    RenderSquareRot(x + 0.5f, y + 0.5f, 1.2f, 0.1f, 0.25f * PI, v3_Scale(light, 1.0f));
+    glLoadIdentity();
+};
+
 static void MapRender(Map* map) {
     for (int y = 0; y < MAP_HEIGHT; ++y) {
         for (int x = 0; x < MAP_WIDTH; ++x) {
@@ -44,7 +53,10 @@ static void MapRender(Map* map) {
                 case TILE_WALL: {
                     v3 light = GetWallLight(map, x, y);
 
-                    RenderBox((v3) { x + 0.5f, y + 0.5f, 1.0f }, (v3) { 0.5f, 0.5f, 1.0f }, (v4) { 0.2f * light.r, 0.2f * light.g, 0.2f * light.b, 1.0f });
+                    RenderRect((v2) { x + 0.5f, y + 0.5f }, 0.0f, (v2) { 0.5f, 0.5f }, (v4) { 0.3f * light.r, 0.3f * light.g, 0.3f * light.b, 1.0f });
+
+                    RenderTree(x, y, light);
+                    //RenderBox((v3) { x + 0.5f, y + 0.5f, 1.0f }, (v3) { 0.5f, 0.5f, 1.0f }, (v4) { 0.2f * light.r, 0.2f * light.g, 0.2f * light.b, 1.0f });
                 } break;
             }
         }

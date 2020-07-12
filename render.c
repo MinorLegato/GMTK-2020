@@ -29,6 +29,25 @@ static void RenderSquare(v2 pos, f32 rad, v4 col) {
     glEnd();
 }
 
+static void RenderSquareRot(f32 x, f32 y, f32 z, f32 rad, f32 rot, v3 col) {
+    glLoadIdentity();
+
+    glTranslatef(x, y, z);
+    glScalef(rad, rad, 1.0f);
+    glRotatef(rot * TO_DEG_MUL, 0.0f, 0.0f, 1.0f);
+    
+    glColor4f(col.r, col.g, col.b, 1.0f);
+    
+    glBegin(GL_QUADS);
+    
+    glVertex2f(-1.0f, -1.0f);
+    glVertex2f(+1.0f, -1.0f);
+    glVertex2f(+1.0f, +1.0f);
+    glVertex2f(-1.0f, +1.0f);
+    
+    glEnd();
+}
+
 static void RenderBox(v3 pos, v3 scale, v4 col) {
     glLoadIdentity();
     
