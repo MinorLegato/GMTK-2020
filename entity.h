@@ -66,6 +66,8 @@ typedef struct Entity {
     
     i32         powerup;
     f32         cooldown;
+
+    f32         fire;
     
     u32         owner_id;
 } Entity;

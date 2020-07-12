@@ -21,7 +21,6 @@ typedef struct Tile {
     v3          light;
 
     f32         heat;
-    f32         fire;
 } Tile;
 
 static Texture  blood_texture;

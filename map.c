@@ -74,15 +74,9 @@ static void MapUpdate(Map* map, ParticleSystem* ps, f32 dt) {
 
             tile->light = v3_Lerp(tile->light, (v3) {0}, 1.0f * dt);
 
-            if (tile->heat > 0.0f) {
-                tile->heat -= dt;
-            }
+            tile->heat = fClamp(tile->heat - dt, 0.0f, 8.0f);
 
-            if (tile->fire > 0.0f) {
-                tile->fire -= dt;
-
-                AddLight(map, x, y, (v3) { 1.0f, 1.0f, 0.0f });
-
+            if (tile->heat <= 1.0f) {
                 for (int i = 0; i < 4; ++i) {
                     int nx = x + (int[]) { -1, 1, 0, 0 } [i];
                     int ny = y + (int[]) { 0, 0, -1, 1 } [i];
@@ -90,24 +84,24 @@ static void MapUpdate(Map* map, ParticleSystem* ps, f32 dt) {
                     if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) continue;
 
                     Tile* nt = &map->tiles[ny][nx];
-                    
-                    nt->heat += 1.2f * dt;
-                }
 
-                {
-                    Particle particle = {
-                        .pos        = { x + fRand(0.0f, 1.0f), y + fRand(0.0f, 1.0f) },
-                        .vel        = v2_Rand(-2.0f, 2.0f),
-                        .rad        = fRand(0.05f, 0.1f),
-                        .life       = fRand(0.1f, 1.0f),
-                        .max_life   = particle.life,
-                        .col        = { 1.0f, 0.5f, 0.0f, 1.0f },
-                    };
-
-                    ParticleAdd(ps, &particle);
+                    tile->heat += 0.5f * nt->heat * dt;
                 }
-            } else if (tile->heat > 1.0f) {
-                tile->fire = 2.0f;
+            }
+
+            if (tile->heat > 1.0f) {
+                AddLight(map, x, y, (v3) { 1.0f, 1.0f, 0.0f });
+
+                Particle particle = {
+                    .pos        = { x + fRand(0.0f, 1.0f), y + fRand(0.0f, 1.0f) },
+                    .vel        = v2_Rand(-2.0f, 2.0f),
+                    .rad        = fRand(0.05f, 0.1f),
+                    .life       = fRand(0.1f, 1.0f),
+                    .max_life   = particle.life,
+                    .col        = { 1.0f, 0.5f, 0.0f, 1.0f },
+                };
+
+                ParticleAdd(ps, &particle);
             }
         }
     }
@@ -116,7 +110,7 @@ static void MapUpdate(Map* map, ParticleSystem* ps, f32 dt) {
         for (int x = 0; x < BLOOD_MAP_WIDTH; ++x) {
             v4* blood = &map->blood[y][x];
 
-            blood->a = fLerp(blood->a, 0.1f, dt);
+            blood->a = fLerp(blood->a, 0.05f, dt);
 
             int     count = 0;
             v4      color = {0};

@@ -114,6 +114,7 @@ static f32 powerup_switch_cooldown_org = 0.0f;
 
 static void UpdateEntities(GameState* gs, f32 dt) {
     EntityManager*  em  = &gs->entity_manager;
+    ParticleSystem* ps  = &gs->particle_system;
     Map*            map = &gs->map;
     Camera*         cam = &gs->camera;
     
@@ -125,6 +126,33 @@ static void UpdateEntities(GameState* gs, f32 dt) {
     
     for (int i = 0; i < em->count; ++i) {
         Entity* e = &em->array[i];
+
+        // handle fire
+        {
+            e->fire = fClampMin(e->fire - dt, 0.0f);
+
+            Tile* tile = &map->tiles[(int)e->pos.y][(int)e->pos.x];
+
+            if (tile->heat >= 1.0f) {
+                e->fire = 1.0f;
+            }
+
+            if (e->fire > 0.0f) {
+                e->life     -= dt;
+                tile->heat  += 0.3f * dt;
+
+                Particle particle = {
+                    .pos        = { e->pos.x + fRand(-e->rad, e->rad), e->pos.y + fRand(-e->rad, e->rad) },
+                    .vel        = v2_Rand(-2.0f, 2.0f),
+                    .rad        = fRand(0.05f, 0.1f),
+                    .life       = fRand(0.2f, 0.5f),
+                    .max_life   = particle.life,
+                    .col        = { 1.0f, 0.5f, 0.0f, 1.0f },
+                };
+
+                ParticleAdd(ps, &particle);
+            }
+        }
         
         b32 shoot = false;
         
@@ -215,7 +243,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
             } break;
             case ENTITY_CORPSE: {
                 BloodSpurter(&gs->particle_system, e, 1);
-                EntityFriction(e, 4.0f);
+                EntityFriction(e, 8.0f);
                 e->life -= dt;
             } break;
             case ENTITY_AREA_DMG: {
@@ -327,7 +355,7 @@ static void GameRun(GameState* gs) {
         }
         
         if (platform.mouse_pressed[GLFW_MOUSE_BUTTON_RIGHT])
-            gs->map.tiles[(int)mouse_world_position.y][(int)mouse_world_position.x].heat = 4.0f;
+            gs->map.tiles[(int)mouse_world_position.y][(int)mouse_world_position.x].heat = 2.0f;
 
         {
             static f32 enemy_spawn_cooldown = 0.0f;
