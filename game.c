@@ -544,11 +544,11 @@ static void GameRun(GameState* gs) {
 
             RenderRect(
                     (v2) { cam->current.x + 0.0f, cam->current.y - 6.0f }, cam->current.z - 8.0f,
-                    (v2) { 4.5f, 0.05f }, (v4) { 1.0f, 0.0f, .0f, 1.0f });
+                    (v2) { 4.0f, 0.05f }, (v4) { 1.0f, 0.0f, .0f, 1.0f });
 
             RenderRect(
                     (v2) { cam->current.x + 0.0f, cam->current.y - 6.0f }, cam->current.z - 8.0f,
-                    (v2) { (player_health / PLAYER_HEALTH) * 3.5f, 0.05f }, (v4) { 0.0f, 1.0f, .0f, 1.0f });
+                    (v2) { (player_health / PLAYER_HEALTH) * 4.0f, 0.05f }, (v4) { 0.0f, 1.0f, .0f, 1.0f });
            
             glEnable(GL_DEPTH_TEST);
         }
