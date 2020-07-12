@@ -1109,6 +1109,8 @@ struct {
     f32             time_delta;
     f32             time_total;
     
+    b32             key_press;
+
     u8              key_down        [GLFW_KEY_LAST + 1];
     u8              key_pressed     [GLFW_KEY_LAST + 1];
     u8              key_released    [GLFW_KEY_LAST + 1];
@@ -1126,6 +1128,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
     
     switch (action) {
         case GLFW_PRESS: {
+            platform.key_press          = true;
             platform.key_down[key]      = true;
             platform.key_pressed[key]   = true;
         } break;
@@ -1173,6 +1176,8 @@ void PlatformUpdate(void) {
     
     glViewport(0, 0, platform.width, platform.height);
     
+    platform.key_press = false;
+
     for (int i = 0; i < ARRAY_COUNT(platform.key_pressed);  ++i) platform.key_pressed[i]  = false;
     for (int i = 0; i < ARRAY_COUNT(platform.key_released); ++i) platform.key_released[i] = false;
     

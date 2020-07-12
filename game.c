@@ -144,6 +144,7 @@ static f32 powerup_switch_cooldown = 0.0f;
 
 static f32 player_health;
 static i32 player_powerup;
+static i32 player_dodge_cooldown;
 
 static void UpdateEntities(GameState* gs, f32 dt) {
     EntityManager*  em  = &gs->entity_manager;
@@ -193,7 +194,8 @@ static void UpdateEntities(GameState* gs, f32 dt) {
             case ENTITY_PLAYER: {
                 v2 acc = {0};
                 e->cooldown -= dt;
-                if(powerup_switch_cooldown <= 0.0f) {
+
+                if (powerup_switch_cooldown <= 0.0f) {
                     e->powerup = iRand(0, POWERUP_COUNT);
                 }
                 
@@ -215,11 +217,13 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 v2 mouse_vec = v2_Sub(mouse_world_position.xy, e->pos);
                 
                 if (e->powerup != POWERUP_MELEE) {
-                    e->aim = v2_Scale(v2_Norm(mouse_vec),
-                                      fClamp(fLerp(0.5, 1.0f, 1.0f - e->cooldown / powerup_cooldowns[e->powerup]), 0.5f, 1.0f));
+                    e->aim = v2_Scale(
+                            v2_Norm(mouse_vec),
+                            fClamp(fLerp(0.5, 1.0f, 1.0f - e->cooldown / powerup_cooldowns[e->powerup]), 0.5f, 1.0f));
                 } else {
-                    e->aim = v2_Scale(v2_Norm(mouse_vec),
-                                      fClamp(fLerp(1.0, 1.5f, e->cooldown / powerup_cooldowns[e->powerup]), 1.0f, 1.5f));
+                    e->aim = v2_Scale(
+                            v2_Norm(mouse_vec),
+                            fClamp(fLerp(1.0, 1.5f, e->cooldown / powerup_cooldowns[e->powerup]), 1.0f, 1.5f));
                 }
                 
                 if (platform.mouse_down[GLFW_MOUSE_BUTTON_LEFT] && e->cooldown <= 0.0f) {
@@ -470,18 +474,18 @@ static void GameRun(GameState* gs) {
         
         f32 dt = platform.time_delta;
         
+        EntityManager* em = &gs->entity_manager;
+
         if (platform.key_pressed[GLFW_KEY_ESCAPE]) {
             game_running    = false;
         }
         
-        if (platform.key_pressed[GLFW_KEY_R]) {
+        if (em->array[0].type != ENTITY_PLAYER && platform.key_pressed[GLFW_KEY_R]) {
             enemy_spawn_cooldown = 6.0f;
             GameInit(gs);
         }
         
         {
-            EntityManager* em = &gs->entity_manager;
-            
             if (em->array[0].type == ENTITY_PLAYER && (enemy_spawn_cooldown -= dt) <= 0.0f) {
                 enemy_spawn_cooldown = 12.0f;
                 
@@ -557,11 +561,16 @@ static void GameRun(GameState* gs) {
                        (v2) { 4.0f, 0.05f }, (v4) { 1.0f, 0.0f, .0f, 1.0f });
             
             RenderRect(
-                       (v2) { cam->current.x + 0.0f, cam->current.y - 6.0f }, cam->current.z - 8.0f,
-                       (v2) { (player_health / PLAYER_HEALTH) * 4.0f, 0.05f }, (v4) { 0.0f, 1.0f, .0f, 1.0f });
-            
-            if(help_screen_bool) HelpScreen(cam);
-            
+                    (v2) { cam->current.x + 0.0f, cam->current.y - 6.0f }, cam->current.z - 8.0f,
+                    (v2) { (player_health / PLAYER_HEALTH) * 4.0f, 0.05f }, (v4) { 0.0f, 1.0f, .0f, 1.0f });
+
+            if (em->array[0].type != ENTITY_PLAYER) {
+                const char* restart_msg = "press 'R' to try again!";
+                int len = strlen(restart_msg);
+
+                RenderStringFormat(cam->current.x - 0.4f * 0.5f * len, cam->current.y, cam->current.z - 8.0f, 0.4f, -0.6f, 0.8f, 0.8f, 0.8f, 1.0f, restart_msg);
+            }
+           
             glEnable(GL_DEPTH_TEST);
         }
         
