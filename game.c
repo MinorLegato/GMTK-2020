@@ -107,11 +107,11 @@ static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
                 .owner_id  = e->id,
                 .vel = v2_Add(v2_Add(v2_Scale(aim, speed), e->vel), v2_Rand(-1.0f, 1.0f)),
             };
-
+            
             EntityAdd(em, &p);
         }
     }
-
+    
     switch (e->powerup) {
         case POWERUP_NONE:      AudioPlay(AUDIO_GUN_0);     break;
         case POWERUP_SPEED:     AudioPlay(AUDIO_GUN_1);     break;
@@ -225,7 +225,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 UpdatePathToPlayer(map, e->pos.x, e->pos.y);
             } break;
             case ENTITY_BULLET: {
-                if (e->flags & ENTITY_FLAG_IMPACT) {
+                if (e->flags & ENTITY_FLAG_IMPACT && e->powerup != POWERUP_FIRE) {
                     for (int i = 0; i < 32; ++i) {
                         Particle p = CreateParticle(e->pos, v2_Rand(-2.0f, 2.0f), 0.02f, 0.5f, powerup_colors[e->powerup]);
                         
@@ -299,15 +299,15 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                     EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_AREA_DMG, .pos = e->pos, .rad = 1.0f, .life = 0.1f });
                     
                     tile->heat = 2.0f;
-
+                    
                     AudioPlayFromSource(AUDIO_EXPLOSION, cam->current.xy, e->pos, 1.0f);
                 }
-
+                
                 if (e->powerup == POWERUP_FIRE) {
                     map->tiles[(i32)e->pos.y][(i32)e->pos.x].heat = 1.5f;
                 }
-
-                if (e->flags & ENTITY_FLAG_IMPACT) {
+                
+                if (e->flags & ENTITY_FLAG_IMPACT && e->powerup != POWERUP_FIRE) {
                     AudioPlayFromSource(AUDIO_IMPACT, cam->current.xy, e->pos, 1.0f);
                 }
             } else if (e->type == ENTITY_CORPSE) {
@@ -318,7 +318,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_CORPSE, .pos = e->pos, .aim = v2_Norm(e->vel), .rad = e->rad, .life = 2.0f });
                 zombies_killed++;
             }
-
+            
             EntityRemove(em, i);
         }
     }
