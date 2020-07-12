@@ -39,9 +39,14 @@ static void RenderTree(int x, int y, v3 light) {
     glLoadIdentity();
 };
 
-static void MapRender(Map* map) {
-    for (int y = 0; y < MAP_HEIGHT; ++y) {
-        for (int x = 0; x < MAP_WIDTH; ++x) {
+static void MapRender(Map* map, const Camera* cam) {
+    int sx = iClampMin(cam->current.x - 18, 0);
+    int sy = iClampMin(cam->current.y - 10,  0);
+    int ex = iClampMax(cam->current.x + 18, MAP_WIDTH);
+    int ey = iClampMax(cam->current.y + 10,  MAP_HEIGHT);
+
+    for (int y = sy; y < ey; ++y) {
+        for (int x = sx; x < ex; ++x) {
             Tile* tile = &map->tiles[y][x];
 
             switch (tile->type) {
@@ -56,7 +61,6 @@ static void MapRender(Map* map) {
                     RenderRect((v2) { x + 0.5f, y + 0.5f }, 0.0f, (v2) { 0.5f, 0.5f }, (v4) { 0.3f * light.r, 0.3f * light.g, 0.3f * light.b, 1.0f });
 
                     RenderTree(x, y, light);
-                    //RenderBox((v3) { x + 0.5f, y + 0.5f, 1.0f }, (v3) { 0.5f, 0.5f, 1.0f }, (v4) { 0.2f * light.r, 0.2f * light.g, 0.2f * light.b, 1.0f });
                 } break;
             }
         }
@@ -109,8 +113,8 @@ static void MapUpdate(Map* map, ParticleSystem* ps, f32 dt) {
                 AddLight(map, x, y, (v3) { 1.0f, 1.0f, 0.0f });
 
                 Particle particle = {
-                    .pos        = { x + fRand(0.0f, 1.0f), y + fRand(0.0f, 1.0f) },
-                    .vel        = v2_Rand(-2.0f, 2.0f),
+                    .pos        = { x + fRand(0.0f, 1.0f), y + fRand(0.0f, 1.0f), 0.0f },
+                    .vel        = { .xy = v2_Rand(-2.0f, 2.0f) },
                     .rad        = fRand(0.05f, 0.1f),
                     .life       = fRand(0.1f, 1.0f),
                     .max_life   = particle.life,
