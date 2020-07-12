@@ -1,6 +1,8 @@
 
 static i32 zombies_killed;
 
+#define PLAYER_HEALTH 10.0f
+
 static void PushCollision(Entity* a, const Entity* b, f32 dt) {
     EntityApply(a, v2_Scale(v2_Norm(v2_Sub(a->pos, b->pos)), 16.0f));
 }
@@ -162,7 +164,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
         switch (e->type) {
             case ENTITY_PLAYER: {
                 v2 acc = {0};
-                
+                if(e->life < PLAYER_HEALTH) e->life += dt;
                 e->cooldown -= dt;
                 if(powerup_switch_cooldown <= 0.0f) {
                     e->powerup = iRand(0, POWERUP_COUNT);
@@ -336,6 +338,10 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
                 }
                 RenderRect(v2_Add(e->pos, (v2) {0.0f, 0.5f}), 1.0f,
                            (v2) {(powerup_switch_cooldown / powerup_switch_cooldown_org) * 0.3f, 0.05f }, (v4) { 0.0f, 0.0f, 1.0f, 1.0f });
+                RenderRect(v2_Add(e->pos, (v2) {0.0f, -0.5f}), 1.0f,
+                           (v2) {(e->life / PLAYER_HEALTH) * 0.3f, 0.05f }, (v4) { 0.0f, 1.0f, .0f, 1.0f });
+                RenderRect(v2_Add(e->pos, (v2) {0.0f, -0.5f}), 1.0f,
+                           (v2) { 0.3f, 0.05f }, (v4) { 1.0f, 0.0f, .0f, 1.0f });
             } break;
             case ENTITY_BULLET: {
                 if(e->powerup != POWERUP_FIRE) {
@@ -374,7 +380,7 @@ static void GameInit(GameState* gs) {
     
     gs->camera.current.xy = player_pos;
     
-    EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_PLAYER, .pos = player_pos, .rad = 0.2f, .life = 10.0f, .powerup = POWERUP_NONE });
+    EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_PLAYER, .pos = player_pos, .rad = 0.2f, .life = PLAYER_HEALTH, .powerup = POWERUP_NONE });
     
     zombies_killed = 0;
 }
@@ -467,6 +473,9 @@ static void GameRun(GameState* gs) {
             RenderStringFormat(cam->current.x - 8.0f, cam->current.y + 6.0f, 0.0f, 0.2f, -0.2f, 1.0f, 1.0f, 1.0f, 1.0f, "ms: %f", 1000.0f * dt);
             
             RenderStringFormat(cam->current.x + 8.0f, cam->current.y + 6.0f, 0.0f, 0.2f, -0.2f, 1.0f, 1.0f, 1.0f, 1.0f, "Kills: %d", zombies_killed);
+            
+            //RenderRect(mouse_world_position.xy, 0.0f, (v2) {0.1f, 0.1f}, (v4) { 1.0f, 1.0f, 1.0f, 1.0f });
+            RenderTexture(aim_texture, mouse_world_position, 0.1f, 0.5f * PI, (v4) { 1.0f, 1.0f, 1.0f, 1.0f });
             
             glEnable(GL_DEPTH_TEST);
         }

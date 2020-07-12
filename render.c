@@ -1,103 +1,103 @@
 
 static void RenderRect(v2 pos, f32 z, v2 rad, v4 col) {
     glLoadIdentity();
-
+    
     glColor4f(col.r, col.g, col.b, col.a);
     
     glBegin(GL_QUADS);
-
+    
     glVertex3f(pos.x - rad.x, pos.y - rad.y, z);
     glVertex3f(pos.x + rad.x, pos.y - rad.y, z);
     glVertex3f(pos.x + rad.x, pos.y + rad.y, z);
     glVertex3f(pos.x - rad.x, pos.y + rad.y, z);
-
+    
     glEnd();
 }
 
 static void RenderSquare(v2 pos, f32 rad, v4 col) {
     glLoadIdentity();
-
+    
     glColor4f(col.r, col.g, col.b, col.a);
     
     glBegin(GL_QUADS);
-
+    
     glVertex2f(pos.x - rad, pos.y - rad);
     glVertex2f(pos.x + rad, pos.y - rad);
     glVertex2f(pos.x + rad, pos.y + rad);
     glVertex2f(pos.x - rad, pos.y + rad);
-
+    
     glEnd();
 }
 
 static void RenderBox(v3 pos, v3 scale, v4 col) {
     glLoadIdentity();
-
+    
     glColor4f(col.r, col.g, col.b, col.a);
     
     glBegin(GL_QUADS);
-
+    
     glVertex3f(pos.x - scale.x, pos.y - scale.y, pos.z - scale.z);
     glVertex3f(pos.x + scale.x, pos.y - scale.y, pos.z - scale.z);
     glVertex3f(pos.x + scale.x, pos.y + scale.y, pos.z - scale.z);
     glVertex3f(pos.x - scale.x, pos.y + scale.y, pos.z - scale.z);
-
+    
     glVertex3f(pos.x - scale.x, pos.y - scale.y, pos.z + scale.z);
     glVertex3f(pos.x + scale.x, pos.y - scale.y, pos.z + scale.z);
     glVertex3f(pos.x + scale.x, pos.y + scale.y, pos.z + scale.z);
     glVertex3f(pos.x - scale.x, pos.y + scale.y, pos.z + scale.z);
-
+    
     glVertex3f(pos.x - scale.x, pos.y - scale.y, pos.z - scale.z);
     glVertex3f(pos.x + scale.x, pos.y - scale.y, pos.z - scale.z);
     glVertex3f(pos.x + scale.x, pos.y - scale.y, pos.z + scale.z);
     glVertex3f(pos.x - scale.x, pos.y - scale.y, pos.z + scale.z);
-
+    
     glVertex3f(pos.x - scale.x, pos.y + scale.y, pos.z - scale.z);
     glVertex3f(pos.x + scale.x, pos.y + scale.y, pos.z - scale.z);
     glVertex3f(pos.x + scale.x, pos.y + scale.y, pos.z + scale.z);
     glVertex3f(pos.x - scale.x, pos.y + scale.y, pos.z + scale.z);
-
+    
     glVertex3f(pos.x - scale.x, pos.y - scale.y, pos.z - scale.z);
     glVertex3f(pos.x - scale.x, pos.y + scale.y, pos.z - scale.z);
     glVertex3f(pos.x - scale.x, pos.y + scale.y, pos.z + scale.z);
     glVertex3f(pos.x - scale.x, pos.y - scale.y, pos.z + scale.z);
-
+    
     glVertex3f(pos.x + scale.x, pos.y - scale.y, pos.z - scale.z);
     glVertex3f(pos.x + scale.x, pos.y + scale.y, pos.z - scale.z);
     glVertex3f(pos.x + scale.x, pos.y + scale.y, pos.z + scale.z);
     glVertex3f(pos.x + scale.x, pos.y - scale.y, pos.z + scale.z);
-
+    
     glEnd();
 }
 
 static Texture TextureCreate(const void* pixels, int width, int height, int is_smooth) {
     Texture texture  = {0};
-
+    
     texture.width   = width;
     texture.height  = height;
-
+    
     glGenTextures(1, &texture.id);
     glBindTexture(GL_TEXTURE_2D, texture.id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
+    
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
-
+    
     return texture;
 }
 
 static Texture TextureCreateV4(const void* pixels, int width, int height, int is_smooth) {
     Texture texture  = {0};
-
+    
     texture.width   = width;
     texture.height  = height;
-
+    
     glGenTextures(1, &texture.id);
     glBindTexture(GL_TEXTURE_2D, texture.id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_FLOAT, pixels);
-
+    
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
-
+    
     return texture;
 }
 
@@ -108,47 +108,42 @@ static void TextureUpdateV4(Texture texture, const void* pixels, int is_smooth) 
 
 static void TextureBind(const Texture* texture) {
     glBindTexture(GL_TEXTURE_2D, texture->id);
-
+    
     glMatrixMode(GL_TEXTURE);
-
+    
     glLoadIdentity();
     glScalef(1.0f / texture->width, 1.0f / texture->height, 1.0f);
-
+    
     glMatrixMode(GL_MODELVIEW);
 }
 
 static void RenderTexture(Texture texture, v3 pos, f32 rad, f32 rot, v4 color) {
     glPushMatrix();
     glLoadIdentity();
-
+    
     glTranslatef(pos.x, pos.y, pos.z);
     glScalef(rad, rad, 1.0f);
     glRotatef(rot * TO_DEG_MUL, 0.0f, 0.0f, 1.0f);
-
+    
     glBindTexture(GL_TEXTURE_2D, texture.id);
-
+    
     glEnable(GL_TEXTURE_2D);
-
+    
     glBegin(GL_QUADS);
-
+    
     glColor4f(color.r, color.g, color.b, color.a);
-
+    
     glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -1.0f, 0.0f);
     glTexCoord2f(0.0f, 1.0f); glVertex3f(+1.0f, -1.0f, 0.0f);
     glTexCoord2f(0.0f, 0.0f); glVertex3f(+1.0f, +1.0f, 0.0f);
     glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, +1.0f, 0.0f);
-
+    
     glEnd();
-
+    
     glDisable(GL_TEXTURE_2D);
-
+    
     glPopMatrix();
 };
-
-static Texture player_texture;
-static Texture zombie_texture;
-static Texture gun_texture;
-static Texture knife_texture;
 
 #define BITMAP_COUNT    (256)
 
@@ -418,20 +413,20 @@ static int bitmap_display_list[BITMAP_COUNT];
 static void BitmapInit(void) {
     for (int i = 0; i < BITMAP_COUNT; ++i) {
         bitmap_display_list[i] = glGenLists(1);
-
+        
         glNewList(bitmap_display_list[i], GL_COMPILE);
-
+        
         uint64_t c = bitascii[i];
-
+        
         glBegin(GL_QUADS);
-
+        
         f32 scale = 1.0f / 8.0f;
-
+        
         for (int j = 0; j < 8; ++j) {
             for (int i = 0; i < 8; ++i) {
                 f32 x   = i * scale;
                 f32 y   = j * scale;
-
+                
                 if (BITMAP_GETBIT(c, i, j)) {
                     glVertex3f(x - 0, y - 0,  0.0f);
                     glVertex3f(x + scale, y - 0,  0.0f);
@@ -440,20 +435,20 @@ static void BitmapInit(void) {
                 }
             }
         }
-
+        
         glEnd();
-
+        
         glEndList();
     }
 }
 
 static void RenderAscii(unsigned char c, f32 px, f32 py, f32 pz, f32 x_scale, f32 y_scale, f32 r, f32 g, f32 b, f32 a) {
     glColor4f(r, g, b, a);
-
+    
     f32 T[16];
     f4x4_TranslateScale(T, px, py, pz, x_scale, y_scale, 1.0f);
     glLoadMatrixf(T);
-
+    
     glCallList(bitmap_display_list[c]);
 }
 
@@ -466,12 +461,12 @@ static void RenderString(const char *str, f32 x, f32 y, f32 z, f32 scale_x, f32 
 static void RenderStringFormat(f32 x, f32 y, f32 z, f32 rad_x, f32 rad_y, f32 r, f32 g, f32 b, f32 a, const char* fmt, ...) {
     va_list list;
     char    buffer[256];
-
+    
     va_start(list, fmt);
-
+    
     vsnprintf(buffer, 256, fmt, list);
     RenderString(buffer, x, y, z, rad_x, rad_y, r, g, b, a);
-
+    
     va_end(list);
 }
 
