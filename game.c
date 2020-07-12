@@ -189,9 +189,9 @@ static void UpdateEntities(GameState* gs, f32 dt) {
         }
         
         b32 shoot = false;
-                
+        
         player_dodge_cooldown = fClampMin(player_dodge_cooldown - dt, 0.0f);
-
+        
         switch (e->type) {
             case ENTITY_PLAYER: {
                 v2 acc = {0};
@@ -211,10 +211,10 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 if (platform.key_down[GLFW_KEY_S]) acc.y -= 1.0f;
                 if (platform.key_down[GLFW_KEY_A]) acc.x -= 1.0f;
                 if (platform.key_down[GLFW_KEY_D]) acc.x += 1.0f;
-
+                
                 if (player_dodge_cooldown <= 0.0f && platform.key_pressed[GLFW_KEY_SPACE]) {
                     player_dodge_cooldown = 0.2f;
-
+                    
                     EntityPush(e, v2_Scale(v2_Norm(acc), 4.0f));
                 }
                 
@@ -329,6 +329,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
         if (e->life <= 0.0f) {
             if (e->type == ENTITY_PLAYER) {
                 AudioPlay(AUDIO_SCREAM);
+                player_health = 0.0f;
             } else if (e->type == ENTITY_BULLET) {
                 if (e->powerup == POWERUP_EXPLOSIVE) {
                     ParticleExplosion(&gs->particle_system, e->pos, 0.05f, 1000, 5.0f);
@@ -401,18 +402,6 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
                         RenderTexture(knife_texture, weapon_pos, e->rad, v2_GetAngle((v2) { -1.0f, 0.0f }, e->aim), (v4) { light.r, light.g, light.b, 1.0f });
                     } break;
                 }
-                
-#if 0
-                RenderRect(
-                           v2_Add(e->pos, (v2) {0.0f, 0.5f}), 1.0f,
-                           (v2) {(powerup_switch_cooldown / powerup_switch_cooldown_org) * 0.3f, 0.05f }, (v4) { 0.0f, 0.0f, 1.0f, 1.0f });
-                
-                RenderRect(v2_Add(e->pos, (v2) { 0.0f, -0.5f }), 2.0f,
-                           (v2) {(e->life / PLAYER_HEALTH) * 0.3f, 0.05f }, (v4) { 0.0f, 1.0f, .0f, 1.0f });
-                
-                RenderRect(v2_Add(e->pos, (v2) {0.0f, -0.5f}), 2.0f,
-                           (v2) { 0.3f, 0.05f }, (v4) { 1.0f, 0.0f, .0f, 1.0f });
-#endif
             } break;
             case ENTITY_BULLET: {
                 if(e->powerup != POWERUP_FIRE) {
@@ -484,7 +473,7 @@ static void GameRun(GameState* gs) {
             platform.close = true;
             game_running    = false;
         }
-               
+        
         {
             if (em->array[0].type == ENTITY_PLAYER && (enemy_spawn_cooldown -= dt) <= 0.0f) {
                 enemy_spawn_cooldown = 12.0f;
@@ -580,7 +569,7 @@ static void GameRun(GameState* gs) {
             enemy_spawn_cooldown = 6.0f;
             GameInit(gs);
         }
-
+        
         AudioUpdate();
         PlatformUpdate();
     }
