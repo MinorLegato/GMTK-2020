@@ -343,6 +343,8 @@ static void GameRun(GameState* gs) {
     
     GameInit(gs);
     
+    f32 enemy_spawn_cooldown = 6.0f;
+    
     while (game_running && !platform.close) {
         f32 dt = platform.time_delta;
         
@@ -351,6 +353,7 @@ static void GameRun(GameState* gs) {
         }
         
         if (platform.key_pressed[GLFW_KEY_R]) {
+            enemy_spawn_cooldown = 6.0f;
             GameInit(gs);
         }
         
@@ -358,8 +361,6 @@ static void GameRun(GameState* gs) {
             gs->map.tiles[(int)mouse_world_position.y][(int)mouse_world_position.x].heat = 2.0f;
 
         {
-            static f32 enemy_spawn_cooldown = 0.0f;
-            
             EntityManager* em = &gs->entity_manager;
             
             if (em->array[0].type == ENTITY_PLAYER && (enemy_spawn_cooldown -= dt) <= 0.0f) {
