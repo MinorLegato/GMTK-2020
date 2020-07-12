@@ -90,8 +90,7 @@ static void HandleCollision(GameState* gs, f32 dt) {
 static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
     if(e->powerup == POWERUP_MELEE) {
         EntityAdd(em, &(Entity) { .type = ENTITY_AREA_DMG, .pos = v2_Add(e->pos, v2_Scale(e->aim, 0.6f)), .rad = 0.3f, .life = 0.1f });
-    }
-    else {
+    } else {
         f32 speed = 5.0f;
         i32 shots = 1;
         if (e->powerup == POWERUP_SPEED)        speed = 10.0f;
@@ -106,8 +105,17 @@ static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
                 .owner_id  = e->id,
                 .vel = v2_Add(v2_Add(v2_Scale(aim, speed), e->vel), v2_Rand(-1.0f, 1.0f)),
             };
+
             EntityAdd(em, &p);
         }
+    }
+
+    switch (e->powerup) {
+        case POWERUP_NONE:      AudioPlay(AUDIO_GUN_0);     break;
+        case POWERUP_SPEED:     AudioPlay(AUDIO_GUN_1);     break;
+        case POWERUP_SHOTGUN:   AudioPlay(AUDIO_SHOTGUN);   break;
+        case POWERUP_MELEE:     AudioPlay(AUDIO_KNIFE);     break;
+        case POWERUP_EXPLOSIVE: AudioPlay(AUDIO_MISSILE);   break;
     }
 }
 
@@ -281,15 +289,24 @@ static void UpdateEntities(GameState* gs, f32 dt) {
         EntityUpdate(e, dt);
         
         if (e->life <= 0.0f) {
-            if (e->type == ENTITY_BULLET) {
+            if (e->type == ENTITY_PLAYER) {
+                AudioPlay(AUDIO_SCREAM);
+            } else if (e->type == ENTITY_BULLET) {
                 if (e->powerup == POWERUP_EXPLOSIVE) {
                     ParticleExplosion(&gs->particle_system, e->pos, 0.05f, 1000, 5.0f);
                     EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_AREA_DMG, .pos = e->pos, .rad = 1.0f, .life = 0.1f });
                     
                     tile->heat = 2.0f;
+
+                    AudioPlayFromSource(AUDIO_EXPLOSION, cam->current.xy, e->pos, 1.0f);
                 }
+
                 if (e->powerup == POWERUP_FIRE) {
                     map->tiles[(i32)e->pos.y][(i32)e->pos.x].heat = 1.5f;
+                }
+
+                if (e->flags & ENTITY_FLAG_IMPACT) {
+                    AudioPlayFromSource(AUDIO_IMPACT, cam->current.xy, e->pos, 1.0f);
                 }
             } else if (e->type == ENTITY_CORPSE) {
                 BloodExplosion(&gs->particle_system, e, 100);
@@ -299,7 +316,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_CORPSE, .pos = e->pos, .aim = v2_Norm(e->vel), .rad = e->rad, .life = 2.0f });
                 zombies_killed++;
             }
-            
+
             EntityRemove(em, i);
         }
     }
@@ -468,6 +485,7 @@ static void GameRun(GameState* gs) {
             glEnable(GL_DEPTH_TEST);
         }
         
+        AudioUpdate();
         PlatformUpdate();
     }
 }

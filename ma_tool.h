@@ -1,5 +1,9 @@
 #include <GL/glu.h>
 #include <GLFW/glfw3.h>
+
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+
 #include <stdint.h>
 #include <math.h>
 #include <stdio.h>
@@ -1100,6 +1104,7 @@ struct {
     f32             aspect;
     
     GLFWwindow*     window;
+    HWND            native;
     
     f32             time_delta;
     f32             time_total;
@@ -1154,6 +1159,8 @@ void PlatformInit(const char* title, i32 width, i32 height) {
     
     glfwSetKeyCallback(platform.window, KeyCallback);
     glfwSetMouseButtonCallback(platform.window, MouseButtonCallback);
+
+    platform.native = glfwGetWin32Window(platform.window);
     
     glfwSetTime(0.0f);
 }

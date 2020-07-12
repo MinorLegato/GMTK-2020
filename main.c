@@ -1,14 +1,13 @@
 #include "ma_tool.h"
 
-#define CUTE_SOUND_IMPLEMENTATION
-#include "cute_sound.h"
-
 static v3 mouse_world_position;
 
 #include "player_texture.c"
 #include "zombie_texture.c"
 #include "gun_texture.c"
 #include "knife_texture.c"
+
+#include "audio.c"
 
 #include "render.h"
 #include "camera.h"
@@ -30,9 +29,10 @@ static void RenderMainMenu(void) {
 
 int main(void) {
     PlatformInit("GMTK - 2020", 1200, 800);
+    AudioInit();
 
 #if 0 // enable vsync
-    glfwSwapInterval(0),
+    glfwSwapInterval(0);
 #endif
     
     glEnable(GL_DEPTH_TEST);
@@ -41,10 +41,10 @@ int main(void) {
 
     BitmapInit();
 
-    player_texture  = TextureCreate((unsigned char*)player_pixel_data,  PLAYER_FRAME_WIDTH, PLAYER_FRAME_HEIGHT, false);
-    zombie_texture  = TextureCreate((unsigned char*)zombie_pixel_data,  ZOMBIE_FRAME_WIDTH, ZOMBIE_FRAME_HEIGHT, false);
-    gun_texture     = TextureCreate((unsigned char*)gun_pixel_data,     GUN_FRAME_WIDTH,    GUN_FRAME_HEIGHT,    false);
-    knife_texture   = TextureCreate((unsigned char*)knife_pixel_data,   KNIFE_FRAME_WIDTH,  KNIFE_FRAME_HEIGHT,  false);
+    player_texture  = TextureCreate(player_pixel_data,  PLAYER_FRAME_WIDTH, PLAYER_FRAME_HEIGHT, false);
+    zombie_texture  = TextureCreate(zombie_pixel_data,  ZOMBIE_FRAME_WIDTH, ZOMBIE_FRAME_HEIGHT, false);
+    gun_texture     = TextureCreate(gun_pixel_data,     GUN_FRAME_WIDTH,    GUN_FRAME_HEIGHT,    false);
+    knife_texture   = TextureCreate(knife_pixel_data,   KNIFE_FRAME_WIDTH,  KNIFE_FRAME_HEIGHT,  false);
 
     GameState* gs = calloc(1, sizeof (GameState));
     
@@ -68,6 +68,7 @@ int main(void) {
 
         RenderStringFormat(0.0f, 0.0f, -0.1f, 0.05f, -0.05f, 1.0f, 1.0f, 1.0f, 1.0f, "Hello, world!");
         
+        AudioUpdate();
         PlatformUpdate();
     }
 }
