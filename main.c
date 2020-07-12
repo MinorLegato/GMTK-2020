@@ -7,6 +7,8 @@ static v3 mouse_world_position;
 #include "gun_texture.c"
 #include "knife_texture.c"
 #include "aim_texture.c"
+#include "arrow_texture.c"
+#include "health_pack_texture.c"
 
 #include "audio.c"
 
@@ -17,6 +19,8 @@ static Texture zombie_texture;
 static Texture gun_texture;
 static Texture knife_texture;
 static Texture aim_texture;
+static Texture arrow_texture;
+static Texture health_pack_texture;
 
 #include "camera.h"
 #include "map.h"
@@ -38,7 +42,7 @@ static void RenderMainMenu(void) {
 int main(void) {
     PlatformInit("GMTK - 2020", 1200, 800);
     AudioInit();
-
+    
 #if 0 // enable vsync
     glfwSwapInterval(0);
 #endif
@@ -56,6 +60,9 @@ int main(void) {
     gun_texture     = TextureCreate((unsigned char*)gun_pixel_data,     GUN_FRAME_WIDTH,    GUN_FRAME_HEIGHT,    false);
     knife_texture   = TextureCreate((unsigned char*)knife_pixel_data,   KNIFE_FRAME_WIDTH,  KNIFE_FRAME_HEIGHT,  false);
     aim_texture     = TextureCreate((unsigned char*)aim_pixel_data,     AIM_FRAME_WIDTH,    AIM_FRAME_HEIGHT,    false);
+    arrow_texture   = TextureCreate((unsigned char*)arrow_pixel_data,   ARROW_FRAME_WIDTH,  ARROW_FRAME_HEIGHT,  false);
+    
+    health_pack_texture = TextureCreate((unsigned char*)health_pack_pixel_data,   HEALTH_PACK_FRAME_WIDTH,  HEALTH_PACK_FRAME_HEIGHT,  false);
     
     GameState* gs = calloc(1, sizeof (GameState));
     

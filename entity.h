@@ -10,6 +10,7 @@ enum EntityType_ {
     ENTITY_CORPSE,
     ENTITY_BULLET,
     ENTITY_AREA_DMG,
+    ENTITY_HEALTH_PACK,
     ENTITY_COUNT
 };
 
