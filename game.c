@@ -179,8 +179,13 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 
                 v2 mouse_vec = v2_Sub(mouse_world_position.xy, e->pos);
                 
-                e->aim = v2_Scale(v2_Norm(mouse_vec),
-                                  fClamp(fLerp(0.5, 1.0f, 1.0f - e->cooldown / powerup_cooldowns[e->powerup]), 0.5f, 1.0f));
+                if (e->powerup != POWERUP_MELEE) {
+                    e->aim = v2_Scale(v2_Norm(mouse_vec),
+                            fClamp(fLerp(0.5, 1.0f, 1.0f - e->cooldown / powerup_cooldowns[e->powerup]), 0.5f, 1.0f));
+                } else {
+                    e->aim = v2_Scale(v2_Norm(mouse_vec),
+                            fClamp(fLerp(1.0, 1.5f, e->cooldown / powerup_cooldowns[e->powerup]), 1.0f, 1.5f));
+                }
                 
                 if (platform.mouse_down[GLFW_MOUSE_BUTTON_LEFT] && e->cooldown <= 0.0f) {
                     shoot       = true;
@@ -282,24 +287,21 @@ static void UpdateEntities(GameState* gs, f32 dt) {
         EntityUpdate(e, dt);
         
         if (e->life <= 0.0f) {
-            if(e->type == ENTITY_BULLET) {
-                if(e->powerup == POWERUP_EXPLOSIVE) {
+            if (e->type == ENTITY_BULLET) {
+                if (e->powerup == POWERUP_EXPLOSIVE) {
                     ParticleExplosion(&gs->particle_system, e->pos, 0.05f, 1000, 5.0f);
                     EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_AREA_DMG, .pos = e->pos, .rad = 1.0f, .life = 0.1f });
                     
                     tile->heat = 2.0f;
                 }
-                if(e->powerup == POWERUP_FIRE) {
+                if (e->powerup == POWERUP_FIRE) {
                     map->tiles[(i32)e->pos.y][(i32)e->pos.x].heat = 1.5f;
                 }
-            }
-            else if (e->type == ENTITY_CORPSE) {
+            } else if (e->type == ENTITY_CORPSE) {
                 BloodExplosion(&gs->particle_system, e, 100);
-            }
-            else if(e->type == ENTITY_PLAYER) {
+            } else if(e->type == ENTITY_PLAYER) {
                 EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_CORPSE, .pos = e->pos, .aim = v2_Norm(e->vel), .rad = e->rad, .life = 2.0f });
-            }
-            else if(e->type == ENTITY_ENEMY) {
+            } else if(e->type == ENTITY_ENEMY) {
                 EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_CORPSE, .pos = e->pos, .aim = v2_Norm(e->vel), .rad = e->rad, .life = 2.0f });
                 zombies_killed++;
             }
@@ -334,8 +336,9 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
                 } else {
                     RenderTexture(knife_texture, weapon_pos, e->rad, v2_GetAngle((v2) { -1.0f, 0.0f }, e->aim), (v4) { light.r, light.g, light.b, 1.0f });
                 }
+
                 RenderRect(v2_Add(e->pos, (v2) {0.0f, 0.5f}), 1.0f,
-                           (v2) {(powerup_switch_cooldown / powerup_switch_cooldown_org) * 0.3f, 0.05f }, (v4) { 0.0f, 0.0f, 1.0f, 1.0f });
+                           (v2) { (powerup_switch_cooldown / powerup_switch_cooldown_org) * 0.3f, 0.05f }, (v4) { 0.0f, 0.0f, 1.0f, 1.0f });
             } break;
             case ENTITY_BULLET: {
                 if(e->powerup != POWERUP_FIRE) {

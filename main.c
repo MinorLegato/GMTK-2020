@@ -1,5 +1,8 @@
 #include "ma_tool.h"
 
+#define CUTE_SOUND_IMPLEMENTATION
+#include "cute_sound.h"
+
 static v3 mouse_world_position;
 
 #include "player_texture.c"
@@ -28,7 +31,7 @@ static void RenderMainMenu(void) {
 int main(void) {
     PlatformInit("GMTK - 2020", 1200, 800);
 
-#if 0 // enable vsync
+#if 1 // enable vsync
     glfwSwapInterval(0),
 #endif
     
