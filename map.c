@@ -31,11 +31,11 @@ static v3 GetWallLight(Map* map, int x, int y) {
 }
 
 static void RenderTree(int x, int y, v3 light) {
-    RenderSquareRot(x + 0.5f, y + 0.5f, 0.4f, 0.5f, 0.25f * PI, v3_Scale(light, 0.2f));
-    RenderSquareRot(x + 0.5f, y + 0.5f, 0.6f, 0.4f, 0.25f * PI, v3_Scale(light, 0.4f));
-    RenderSquareRot(x + 0.5f, y + 0.5f, 0.8f, 0.3f, 0.25f * PI, v3_Scale(light, 0.6f));
-    RenderSquareRot(x + 0.5f, y + 0.5f, 1.0f, 0.2f, 0.25f * PI, v3_Scale(light, 0.8f));
-    RenderSquareRot(x + 0.5f, y + 0.5f, 1.2f, 0.1f, 0.25f * PI, v3_Scale(light, 1.0f));
+    RenderSquareRot(x + 0.5f, y + 0.5f, 0.4f, 0.5f, 0.25f * PI, v3_Scale(light, 0.4f));
+    RenderSquareRot(x + 0.5f, y + 0.5f, 0.6f, 0.4f, 0.0f  * PI, v3_Scale(light, 0.5f));
+    RenderSquareRot(x + 0.5f, y + 0.5f, 0.8f, 0.3f, 0.25f * PI, v3_Scale(light, 0.7f));
+    RenderSquareRot(x + 0.5f, y + 0.5f, 1.0f, 0.2f, 0.0f  * PI, v3_Scale(light, 0.8f));
+    RenderSquareRot(x + 0.5f, y + 0.5f, 1.2f, 0.1f, 0.25f * PI, v3_Scale(light, 0.9f));
     glLoadIdentity();
 };
 
