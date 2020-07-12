@@ -1,5 +1,8 @@
 #include "ma_tool.h"
 
+#define CUTE_SOUND_IMPLEMENTATION
+#include "cute_sound.h"
+
 static v3 mouse_world_position;
 
 #include "player_texture.c"
