@@ -484,12 +484,7 @@ static void GameRun(GameState* gs) {
             platform.close = true;
             game_running    = false;
         }
-        
-        if (em->array[0].type != ENTITY_PLAYER && platform.key_pressed[GLFW_KEY_R]) {
-            enemy_spawn_cooldown = 6.0f;
-            GameInit(gs);
-        }
-        
+               
         {
             if (em->array[0].type == ENTITY_PLAYER && (enemy_spawn_cooldown -= dt) <= 0.0f) {
                 enemy_spawn_cooldown = 12.0f;
@@ -551,7 +546,7 @@ static void GameRun(GameState* gs) {
             
             glDisable(GL_DEPTH_TEST);
             
-            RenderStringFormat(cam->current.x - 9.0f, cam->current.y + 6.0f, cam->current.z - 8.0f, 0.2f, -0.2f, 1.0f, 1.0f, 1.0f, 1.0f, "ms: %f", 1000.0f * dt);
+            RenderStringFormat(cam->current.x - 9.0f, cam->current.y + 6.0f, cam->current.z - 8.0f, 0.2f, -0.2f, 1.0f, 1.0f, 1.0f, 1.0f, "ms: %.2f", 1000.0f * dt);
             RenderStringFormat(cam->current.x + 7.0f, cam->current.y + 6.0f, cam->current.z - 8.0f, 0.2f, -0.2f, 1.0f, 1.0f, 1.0f, 1.0f, "Kills: %d", zombies_killed);
             RenderStringFormat(cam->current.x - 2.0f * 0.4f, cam->current.y + 6.0f, cam->current.z - 8.0f, 0.4f, -0.6f, 1.0f, 1.0f, 1.0f, 1.0f, "%.2f", powerup_switch_cooldown);
             
@@ -581,6 +576,11 @@ static void GameRun(GameState* gs) {
             glEnable(GL_DEPTH_TEST);
         }
         
+        if (em->array[0].type != ENTITY_PLAYER && platform.key_pressed[GLFW_KEY_R]) {
+            enemy_spawn_cooldown = 6.0f;
+            GameInit(gs);
+        }
+
         AudioUpdate();
         PlatformUpdate();
     }
