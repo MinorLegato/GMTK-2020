@@ -273,10 +273,10 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                     tile->heat = 2.0f;
                 }
             }
-            else if(e->type == ENTITY_CORPSE) {
+            else if (e->type == ENTITY_CORPSE) {
                 BloodExplosion(&gs->particle_system, e, 100);
             }
-            else if(e->type == ENTITY_PLAYER || e->type == ENTITY_ENEMY) {
+            else if (e->type == ENTITY_PLAYER || e->type == ENTITY_ENEMY) {
                 EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_CORPSE, .pos = e->pos, .aim = v2_Norm(e->vel), .rad = e->rad, .life = 2.0f });
             }
             
