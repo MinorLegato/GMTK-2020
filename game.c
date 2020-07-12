@@ -1,4 +1,6 @@
 
+static i32 zombies_killed;
+
 static void PushCollision(Entity* a, const Entity* b, f32 dt) {
     EntityApply(a, v2_Scale(v2_Norm(v2_Sub(a->pos, b->pos)), 16.0f));
 }
@@ -122,18 +124,18 @@ static void UpdateEntities(GameState* gs, f32 dt) {
         powerup_switch_cooldown = fRand(2.0f, 10.0f);
         powerup_switch_cooldown_org = powerup_switch_cooldown;
     }
-
+    
     powerup_switch_cooldown -= dt;
     
     for (int i = 0; i < em->count; ++i) {
         Entity* e = &em->array[i];
-
+        
         Tile* tile = &map->tiles[(int)e->pos.y][(int)e->pos.x];
-
+        
         // handle fire
         {
             e->fire = fClampMin(e->fire - dt, 0.0f);
-
+            
             if (tile->heat >= 1.0f) {
                 e->fire = 1.0f;
             }
@@ -187,7 +189,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 
                 if (shoot) {
                     CreateBullet(em, e, e->aim);
-
+                    
 #if 0
                     if (e->powerup == POWERUP_MELEE) {
                         ParticleExplosion(&gs->particle_system, v2_Add(e->pos, v2_Scale(e->aim, 0.5f)), 0.05f, 20, 5.0f);
@@ -250,7 +252,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 v2 next_tile = NextPathToPlayer(map, e->pos.x, e->pos.y);
                 
                 v2 dir = v2_Norm(v2_Sub(next_tile, e->pos));
-
+                
                 if (e->flags & ENTITY_FLAG_DAMAGE) {
                     BloodSpurter(ps, e, 16);
                 }
@@ -284,7 +286,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 if(e->powerup == POWERUP_EXPLOSIVE) {
                     ParticleExplosion(&gs->particle_system, e->pos, 0.05f, 1000, 5.0f);
                     EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_AREA_DMG, .pos = e->pos, .rad = 1.0f, .life = 0.1f });
-
+                    
                     tile->heat = 2.0f;
                 }
                 if(e->powerup == POWERUP_FIRE) {
@@ -294,8 +296,12 @@ static void UpdateEntities(GameState* gs, f32 dt) {
             else if(e->type == ENTITY_CORPSE) {
                 BloodExplosion(&gs->particle_system, e, 100);
             }
-            else if(e->type == ENTITY_PLAYER || e->type == ENTITY_ENEMY) {
+            else if(e->type == ENTITY_PLAYER) {
                 EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_CORPSE, .pos = e->pos, .aim = v2_Norm(e->vel), .rad = e->rad, .life = 2.0f });
+            }
+            else if(e->type == ENTITY_ENEMY) {
+                EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_CORPSE, .pos = e->pos, .aim = v2_Norm(e->vel), .rad = e->rad, .life = 2.0f });
+                zombies_killed++;
             }
             
             EntityRemove(em, i);
@@ -369,6 +375,8 @@ static void GameInit(GameState* gs) {
     gs->camera.current.xy = player_pos;
     
     EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_PLAYER, .pos = player_pos, .rad = 0.2f, .life = 10.0f, .powerup = POWERUP_NONE });
+    
+    zombies_killed = 0;
 }
 
 static void GameRun(GameState* gs) {
@@ -457,6 +465,8 @@ static void GameRun(GameState* gs) {
             glDisable(GL_DEPTH_TEST);
             
             RenderStringFormat(cam->current.x - 8.0f, cam->current.y + 6.0f, 0.0f, 0.2f, -0.2f, 1.0f, 1.0f, 1.0f, 1.0f, "ms: %f", 1000.0f * dt);
+            
+            RenderStringFormat(cam->current.x + 8.0f, cam->current.y + 6.0f, 0.0f, 0.2f, -0.2f, 1.0f, 1.0f, 1.0f, 1.0f, "Kills: %d", zombies_killed);
             
             glEnable(GL_DEPTH_TEST);
         }
