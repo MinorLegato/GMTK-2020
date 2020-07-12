@@ -93,7 +93,7 @@ static void AudioInit(void) {
     }
     
     {
-        audio.loaded[AUDIO_FOOTSTEP]  = cs_load_wav("sound/sfx_movement_footstep1b.wav");
+        audio.loaded[AUDIO_FOOTSTEP]  = cs_load_wav("sound/sfx_movement_footsteps1b.wav");
         audio.playing[AUDIO_FOOTSTEP] = cs_make_def(&audio.loaded[AUDIO_FOOTSTEP]);
         
         audio.playing[AUDIO_FOOTSTEP].volume_left  = 0.8f * AUDIO_MASTER;
