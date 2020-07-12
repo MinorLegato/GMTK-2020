@@ -5,7 +5,11 @@ static void MapInit(Map* map) {
         for (int x = 0; x < MAP_WIDTH; ++x) {
             Tile* tile = &map->tiles[y][x];
 
-            tile->type = iRand(0, 100) < 80? TILE_FLOOR : TILE_WALL;
+            if (x == 0 || x == MAP_WIDTH - 1 || y == 0 || y == MAP_HEIGHT - 1) {
+                tile->type = TILE_WALL;
+            } else {
+                tile->type = iRand(0, 100) < 80? TILE_FLOOR : TILE_WALL;
+            }
         }
     }
 }

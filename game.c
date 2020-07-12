@@ -186,13 +186,17 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 
                 if (shoot) {
                     CreateBullet(em, e, e->aim);
-                    if(e->powerup == POWERUP_MELEE) {
+
+                    if (e->powerup == POWERUP_MELEE) {
                         ParticleExplosion(&gs->particle_system, v2_Add(e->pos, v2_Scale(e->aim, 0.5f)), 0.05f, 20, 5.0f);
                     }
                     
                     e->cooldown = powerup_cooldowns[e->powerup];
                 }
                 
+                if (e->flags & ENTITY_FLAG_DAMAGE) {
+                    BloodSpurter(ps, e, 16);
+                }
                 
                 EntityFriction(e, 4.0f);
                 EntityApply(e, v2_Scale(v2_Norm(acc), 8.0f));
@@ -228,6 +232,10 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 v2 next_tile = NextPathToPlayer(map, e->pos.x, e->pos.y);
                 
                 v2 dir = v2_Norm(v2_Sub(next_tile, e->pos));
+
+                if (e->flags & ENTITY_FLAG_DAMAGE) {
+                    BloodSpurter(ps, e, 16);
+                }
                 
                 EntityFriction(e, 4.0f);
                 EntityApply(e, v2_Scale(dir, 6.0f));
