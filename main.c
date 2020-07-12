@@ -43,14 +43,10 @@ static Texture health_pack_texture;
 #include "particle.c"
 #include "game.c"
 
-static void RenderMainMenu(void) {
-    RenderRect((v2) { 0.0f, 0.0f }, 0.0f, (v2) { 1.0f, 1.0f }, (v4) { 1.0f, 0.0f, 0.0f, 1.0f });
-}
-
 int main(void) {
     PlatformInit("GMTK - 2020", 1200, 800);
     AudioInit();
-
+    
 #if 0 // enable vsync
     glfwSwapInterval(0);
 #endif
@@ -79,26 +75,6 @@ int main(void) {
     
     blood_texture = TextureCreateV4(gs->map.blood, BLOOD_MAP_WIDTH, BLOOD_MAP_HEIGHT, false);
     
-    while (!platform.close) {
-        if (platform.key_pressed[GLFW_KEY_ENTER])
-            GameRun(gs);
-        
-        if (platform.key_pressed[GLFW_KEY_ESCAPE])
-            platform.close = true;
-        
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        
-        RenderMainMenu();
-        
-        RenderStringFormat(0.0f, 0.0f, -0.1f, 0.05f, -0.05f, 1.0f, 1.0f, 1.0f, 1.0f, "Hello, world!");
-        
-        AudioUpdate();
-        PlatformUpdate();
-    }
+    GameRun(gs);
 }
 

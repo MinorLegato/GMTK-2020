@@ -194,7 +194,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
             case ENTITY_PLAYER: {
                 v2 acc = {0};
                 e->cooldown -= dt;
-
+                
                 if (powerup_switch_cooldown <= 0.0f) {
                     e->powerup = iRand(0, POWERUP_COUNT);
                 }
@@ -218,12 +218,12 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 
                 if (e->powerup != POWERUP_MELEE) {
                     e->aim = v2_Scale(
-                            v2_Norm(mouse_vec),
-                            fClamp(fLerp(0.5, 1.0f, 1.0f - e->cooldown / powerup_cooldowns[e->powerup]), 0.5f, 1.0f));
+                                      v2_Norm(mouse_vec),
+                                      fClamp(fLerp(0.5, 1.0f, 1.0f - e->cooldown / powerup_cooldowns[e->powerup]), 0.5f, 1.0f));
                 } else {
                     e->aim = v2_Scale(
-                            v2_Norm(mouse_vec),
-                            fClamp(fLerp(1.0, 1.5f, e->cooldown / powerup_cooldowns[e->powerup]), 1.0f, 1.5f));
+                                      v2_Norm(mouse_vec),
+                                      fClamp(fLerp(1.0, 1.5f, e->cooldown / powerup_cooldowns[e->powerup]), 1.0f, 1.5f));
                 }
                 
                 if (platform.mouse_down[GLFW_MOUSE_BUTTON_LEFT] && e->cooldown <= 0.0f) {
@@ -460,7 +460,7 @@ static void HelpScreen(Camera* cam) {
     RenderStringFormat(cam->current.x - 7.0f, cam->current.y + 2.25f, cam->current.z - 8.0f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, "to move");
     RenderStringFormat(cam->current.x - 9.0f, cam->current.y + 0.0f, cam->current.z - 8.0f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, "SPACE to dash");
     RenderStringFormat(cam->current.x - 9.0f, cam->current.y - 2.0f, cam->current.z - 8.0f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, "LEFT MOUSE BUTTON to shoot");
-    
+    if(platform.key_press) help_screen_bool = false;
 }
 
 static void GameRun(GameState* gs) {
@@ -475,8 +475,9 @@ static void GameRun(GameState* gs) {
         f32 dt = platform.time_delta;
         
         EntityManager* em = &gs->entity_manager;
-
+        
         if (platform.key_pressed[GLFW_KEY_ESCAPE]) {
+            platform.close = true;
             game_running    = false;
         }
         
@@ -561,16 +562,18 @@ static void GameRun(GameState* gs) {
                        (v2) { 4.0f, 0.05f }, (v4) { 1.0f, 0.0f, .0f, 1.0f });
             
             RenderRect(
-                    (v2) { cam->current.x + 0.0f, cam->current.y - 6.0f }, cam->current.z - 8.0f,
-                    (v2) { (player_health / PLAYER_HEALTH) * 4.0f, 0.05f }, (v4) { 0.0f, 1.0f, .0f, 1.0f });
-
+                       (v2) { cam->current.x + 0.0f, cam->current.y - 6.0f }, cam->current.z - 8.0f,
+                       (v2) { (player_health / PLAYER_HEALTH) * 4.0f, 0.05f }, (v4) { 0.0f, 1.0f, .0f, 1.0f });
+            
             if (em->array[0].type != ENTITY_PLAYER) {
                 const char* restart_msg = "press 'R' to try again!";
                 int len = strlen(restart_msg);
-
+                
                 RenderStringFormat(cam->current.x - 0.4f * 0.5f * len, cam->current.y, cam->current.z - 8.0f, 0.4f, -0.6f, 0.8f, 0.8f, 0.8f, 1.0f, restart_msg);
             }
-           
+            
+            if(help_screen_bool) HelpScreen(cam);
+            
             glEnable(GL_DEPTH_TEST);
         }
         
