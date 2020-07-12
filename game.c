@@ -1,5 +1,6 @@
 
 static i32 zombies_killed;
+static b32 health_pack_active;
 
 #define PLAYER_HEALTH 10.0f
 
@@ -39,6 +40,8 @@ static CollisionFunc* collision_table[ENTITY_COUNT][ENTITY_COUNT] = {
     [ENTITY_CORPSE][ENTITY_CORPSE]  = PushCollision,
     //area collision:
     [ENTITY_ENEMY][ENTITY_AREA_DMG] = KillCollision,
+    //health pack collision
+    [ENTITY_HEALTH_PACK][ENTITY_PLAYER] = KillCollision,
 };
 
 static void HandleCollision(GameState* gs, f32 dt) {
@@ -122,6 +125,18 @@ static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
     }
 }
 
+static v2 GetValidSpawnLocation(Map* map) {
+    int x = iRand(0, MAP_WIDTH);
+    int y = iRand(0, MAP_HEIGHT);
+    
+    while (map->tiles[y][x].type != TILE_FLOOR || map->path_to_player[y][x] == y * MAP_WIDTH + x) {
+        x = iRand(0, MAP_WIDTH);
+        y = iRand(0, MAP_HEIGHT);
+    }
+    
+    return (v2) { x + 0.5f, y + 0.5f };
+}
+
 static f32 powerup_switch_cooldown = 0.0f;
 static f32 powerup_switch_cooldown_org = 0.0f;
 
@@ -169,14 +184,19 @@ static void UpdateEntities(GameState* gs, f32 dt) {
         }
         
         b32 shoot = false;
-
+        
         switch (e->type) {
             case ENTITY_PLAYER: {
                 v2 acc = {0};
-                if(e->life < PLAYER_HEALTH) e->life += dt * 0.1f;
                 e->cooldown -= dt;
                 if(powerup_switch_cooldown <= 0.0f) {
                     e->powerup = iRand(0, POWERUP_COUNT);
+                }
+                
+                if(e->life < PLAYER_HEALTH * 0.75f && !health_pack_active) {
+                    health_pack_active = true;
+                    v2 pos = GetValidSpawnLocation(&gs->map);
+                    EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_HEALTH_PACK, .pos = pos, .rad = 0.1f, .life = 1.0f });
                 }
                 
                 if (platform.key_down[GLFW_KEY_W]) acc.y += 1.0f;
@@ -189,7 +209,7 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 }
                 
                 v2 mouse_vec = v2_Sub(mouse_world_position.xy, e->pos);
-               
+                
                 if (e->powerup != POWERUP_MELEE) {
                     e->aim = v2_Scale(v2_Norm(mouse_vec),
                                       fClamp(fLerp(0.5, 1.0f, 1.0f - e->cooldown / powerup_cooldowns[e->powerup]), 0.5f, 1.0f));
@@ -318,6 +338,10 @@ static void UpdateEntities(GameState* gs, f32 dt) {
             } else if(e->type == ENTITY_ENEMY) {
                 EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_CORPSE, .pos = e->pos, .aim = v2_Norm(e->vel), .rad = e->rad, .life = 2.0f });
                 zombies_killed++;
+            } else if(e->type == ENTITY_HEALTH_PACK) {
+                Entity* player = &em->array[0];
+                player->life = PLAYER_HEALTH;
+                health_pack_active = false;
             }
             
             EntityRemove(em, i);
@@ -379,20 +403,20 @@ static void RenderEntities(const EntityManager* em, const Map* map) {
             case ENTITY_CORPSE: {
                 RenderTexture(zombie_texture, (v3) { e->pos.x, e->pos.y, 0.2f }, e->rad, 0.5f * PI, (v4) { 0.7f * light.r, 0.5f * light.g, 0.5f * light.b, 1.0f });
             } break;
+            case ENTITY_HEALTH_PACK: {
+                RenderTexture(health_pack_texture, (v3) { e->pos.x, e->pos.y, 0.2f }, 0.3f, 0.5f * PI, (v4) { light.r, light.g, light.b, 1.0f });
+                
+                const Entity* player = &em->array[0];
+                v2 diff = v2_Sub(e->pos, player->pos);
+                if(v2_Len(diff) > 10.0f) {
+                    v2 dir = v2_Norm(diff);
+                    RenderTexture(arrow_texture,
+                                  (v3) { player->pos.x + dir.x * 3.0f, player->pos.y + dir.y * 3.0f, 1.0f },
+                                  0.3f, v2_GetAngle((v2){0,1}, dir), (v4) { 1.0f, 1.0f, 1.0f, 0.3f });
+                }
+            } break;
         }
     }
-}
-
-static v2 GetValidSpawnLocation(Map* map) {
-    int x = iRand(0, MAP_WIDTH);
-    int y = iRand(0, MAP_HEIGHT);
-    
-    while (map->tiles[y][x].type != TILE_FLOOR || map->path_to_player[y][x] == y * MAP_WIDTH + x) {
-        x = iRand(0, MAP_WIDTH);
-        y = iRand(0, MAP_HEIGHT);
-    }
-    
-    return (v2) { x + 0.5f, y + 0.5f };
 }
 
 static void GameInit(GameState* gs) {
@@ -401,12 +425,13 @@ static void GameInit(GameState* gs) {
     MapInit(&gs->map);
     
     v2 player_pos = GetValidSpawnLocation(&gs->map);
-
+    
     gs->camera.current.xy = player_pos;
     
     EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_PLAYER, .pos = player_pos, .rad = 0.2f, .life = PLAYER_HEALTH, .powerup = POWERUP_NONE });
     
     zombies_killed = 0;
+    health_pack_active = false;
 }
 
 static void GameRun(GameState* gs) {

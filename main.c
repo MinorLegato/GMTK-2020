@@ -9,6 +9,8 @@ static v3 mouse_world_position;
 #include "usi_texture.c"
 #include "launcher_texture.c"
 #include "aim_texture.c"
+#include "arrow_texture.c"
+#include "health_pack_texture.c"
 
 #include "audio.c"
 
@@ -21,6 +23,8 @@ static Texture knife_texture;
 static Texture usi_texture;
 static Texture launcher_texture;
 static Texture aim_texture;
+static Texture arrow_texture;
+static Texture health_pack_texture;
 
 #include "camera.h"
 #include "map.h"
@@ -55,6 +59,7 @@ int main(void) {
     
     BitmapInit();
     
+    health_pack_texture = TextureCreate((unsigned char*)health_pack_pixel_data,   HEALTH_PACK_FRAME_WIDTH,  HEALTH_PACK_FRAME_HEIGHT,  false);
     player_texture      = TextureCreate(player_pixel_data,      PLAYER_FRAME_WIDTH,     PLAYER_FRAME_HEIGHT,    false);
     zombie_texture      = TextureCreate(zombie_pixel_data,      ZOMBIE_FRAME_WIDTH,     ZOMBIE_FRAME_HEIGHT,    false);
     gun_texture         = TextureCreate(gun_pixel_data,         GUN_FRAME_WIDTH,        GUN_FRAME_HEIGHT,       false);
@@ -62,6 +67,7 @@ int main(void) {
     usi_texture         = TextureCreate(usi_pixel_data,         USI_FRAME_WIDTH,        USI_FRAME_HEIGHT,       false);
     launcher_texture    = TextureCreate(launcher_pixel_data,    LAUNCHER_FRAME_WIDTH,   LAUNCHER_FRAME_HEIGHT,  false);
     aim_texture         = TextureCreate(aim_pixel_data,         AIM_FRAME_WIDTH,        AIM_FRAME_HEIGHT,       false);
+    arrow_texture   = TextureCreate((unsigned char*)arrow_pixel_data,   ARROW_FRAME_WIDTH,  ARROW_FRAME_HEIGHT,  false);
     
     GameState* gs = calloc(1, sizeof (GameState));
     
