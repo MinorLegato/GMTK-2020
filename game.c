@@ -189,6 +189,10 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 
                 v2 mouse_vec = v2_Sub(mouse_world_position.xy, e->pos);
                 
+                if (v2_Len(e->vel) >= 0.1f) {
+                    AudioPlay(AUDIO_FOOTSTEP);
+                }
+
                 if (e->powerup != POWERUP_MELEE) {
                     e->aim = v2_Scale(v2_Norm(mouse_vec),
                                       fClamp(fLerp(0.5, 1.0f, 1.0f - e->cooldown / powerup_cooldowns[e->powerup]), 0.5f, 1.0f));
