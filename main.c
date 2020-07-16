@@ -2,17 +2,7 @@
 
 static v3 mouse_world_position;
 
-#include "player_texture.c"
-#include "zombie_texture.c"
-#include "gun_texture.c"
-#include "shotgun_texture.c"
-#include "knife_texture.c"
-#include "usi_texture.c"
-#include "launcher_texture.c"
-#include "aim_texture.c"
-#include "arrow_texture.c"
-#include "health_pack_texture.c"
-#include "flame_texture.c"
+#include "textures.c"
 
 #include "audio.c"
 
