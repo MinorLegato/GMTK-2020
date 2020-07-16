@@ -96,10 +96,10 @@ static void HandleCollision(GameState* gs, f32 dt) {
 static void CreateBullet(EntityManager* em, Entity* e, v2 aim) {
     if (e->powerup == POWERUP_MELEE) {
         EntityAdd(em, &(Entity) {
-            .type   = ENTITY_AREA_DMG,
-            .pos    = v2_Add(e->pos, v2_Scale(e->aim, 0.6f)),
-            .rad    = 0.3f,
-            .life   = 0.1f
+            .type       = ENTITY_AREA_DMG,
+            .pos        = v2_Add(e->pos, v2_Scale(e->aim, 0.6f)),
+            .rad        = 0.3f,
+            .life       = 0.1f
         });
     } else {
         f32 speed = 5.0f;
@@ -209,7 +209,12 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 if(e->life < PLAYER_HEALTH * 0.75f && !health_pack_active) {
                     health_pack_active = true;
                     v2 pos = GetValidSpawnLocation(&gs->map);
-                    EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_HEALTH_PACK, .pos = pos, .rad = 0.1f, .life = 1.0f });
+                    EntityAdd(&gs->entity_manager, &(Entity) {
+                        .type       = ENTITY_HEALTH_PACK,
+                        .pos        = pos,
+                        .rad        = 0.1f,
+                        .life       = 1.0f
+                    });
                 }
                 
                 if (platform.key_down[GLFW_KEY_W]) acc.y += 1.0f;
@@ -334,7 +339,13 @@ static void UpdateEntities(GameState* gs, f32 dt) {
         if (e->life <= 0.0f) {
             switch (e->type) {
                 case ENTITY_PLAYER: {
-                    EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_CORPSE, .pos = e->pos, .aim = v2_Norm(e->vel), .rad = e->rad, .life = 2.0f });
+                    EntityAdd(&gs->entity_manager, &(Entity) {
+                        .type       = ENTITY_CORPSE,
+                        .pos        = e->pos,
+                        .aim        = v2_Norm(e->vel),
+                        .rad        = e->rad,
+                        .life       = 2.0f
+                    });
 
                     AudioPlay(AUDIO_SCREAM);
                     player_health = 0.0f;
@@ -342,7 +353,12 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 case ENTITY_BULLET: {
                     if (e->powerup == POWERUP_EXPLOSIVE) {
                         ParticleExplosion(&gs->particle_system, e->pos, 0.05f, 1000, 5.0f);
-                        EntityAdd(&gs->entity_manager, &(Entity) { .type = ENTITY_AREA_DMG, .pos = e->pos, .rad = 1.0f, .life = 0.1f });
+                        EntityAdd(&gs->entity_manager, &(Entity) {
+                            .type       = ENTITY_AREA_DMG,
+                            .pos        = e->pos,
+                            .rad        = 1.0f,
+                            .life       = 0.1f
+                        });
 
                         tile->heat = 2.0f;
 
@@ -362,11 +378,11 @@ static void UpdateEntities(GameState* gs, f32 dt) {
                 } break;
                 case ENTITY_ENEMY: {
                     EntityAdd(&gs->entity_manager, &(Entity) {
-                        .type = ENTITY_CORPSE,
-                        .pos = e->pos,
-                        .aim = v2_Norm(e->vel),
-                        .rad = e->rad,
-                        .life = 2.0f
+                        .type       = ENTITY_CORPSE,
+                        .pos        = e->pos,
+                        .aim        = v2_Norm(e->vel),
+                        .rad        = e->rad,
+                        .life       = 2.0f
                     });
 
                     zombies_killed++;

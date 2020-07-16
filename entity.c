@@ -17,8 +17,10 @@ static void EntityFriction(Entity* e, f32 friction) {
 static void EntityUpdate(Entity* e, f32 dt) {
     e->vel.x += e->acc.x * dt;
     e->vel.y += e->acc.y * dt;
+
     e->pos.x += e->vel.x * dt;
     e->pos.y += e->vel.y * dt;
+
     e->acc.x = 0.0f;
     e->acc.y = 0.0f;
 }
