@@ -1,105 +1,96 @@
 
+static int display_list_square;
+static int display_list_cube;
+
+static void RenderInit(void) {
+    {
+        display_list_square = glGenLists(1);
+
+        glNewList(display_list_square, GL_COMPILE);
+
+        glBegin(GL_QUADS);
+
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -1.0f, 0.0f);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(+1.0f, -1.0f, 0.0f);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(+1.0f, +1.0f, 0.0f);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, +1.0f, 0.0f);
+
+        glEnd();
+
+        glEndList();
+    }
+
+    {
+        display_list_cube = glGenLists(1);
+
+        glNewList(display_list_cube, GL_COMPILE);
+
+        glBegin(GL_QUADS);
+
+        glVertex3f(-1.0f, -1.0f, -1.0f);
+        glVertex3f(+1.0f, -1.0f, -1.0f);
+        glVertex3f(+1.0f, +1.0f, -1.0f);
+        glVertex3f(-1.0f, +1.0f, -1.0f);
+
+        glVertex3f(-1.0f, -1.0f, +1.0f);
+        glVertex3f(+1.0f, -1.0f, +1.0f);
+        glVertex3f(+1.0f, +1.0f, +1.0f);
+        glVertex3f(-1.0f, +1.0f, +1.0f);
+
+        glVertex3f(-1.0f, -1.0f, -1.0f);
+        glVertex3f(+1.0f, -1.0f, -1.0f);
+        glVertex3f(+1.0f, -1.0f, +1.0f);
+        glVertex3f(-1.0f, -1.0f, +1.0f);
+
+        glVertex3f(-1.0f, +1.0f, -1.0f);
+        glVertex3f(+1.0f, +1.0f, -1.0f);
+        glVertex3f(+1.0f, +1.0f, +1.0f);
+        glVertex3f(-1.0f, +1.0f, +1.0f);
+
+        glVertex3f(-1.0f, -1.0f, -1.0f);
+        glVertex3f(-1.0f, +1.0f, -1.0f);
+        glVertex3f(-1.0f, +1.0f, +1.0f);
+        glVertex3f(-1.0f, -1.0f, +1.0f);
+
+        glVertex3f(+1.0f, -1.0f, -1.0f);
+        glVertex3f(+1.0f, +1.0f, -1.0f);
+        glVertex3f(+1.0f, +1.0f, +1.0f);
+        glVertex3f(+1.0f, -1.0f, +1.0f);
+
+        glEnd();
+
+        glEndList();
+    }
+}
+
 static void RenderRect(v2 pos, f32 z, v2 rad, v4 col) {
-    glLoadIdentity();
-    
-    glColor4f(col.r, col.g, col.b, col.a);
-    
-    glBegin(GL_QUADS);
-    
-    glVertex3f(pos.x - rad.x, pos.y - rad.y, z);
-    glVertex3f(pos.x + rad.x, pos.y - rad.y, z);
-    glVertex3f(pos.x + rad.x, pos.y + rad.y, z);
-    glVertex3f(pos.x - rad.x, pos.y + rad.y, z);
-    
-    glEnd();
-}
+    f32 T[16];
+    f4x4_TranslateScale(T, pos.x, pos.y, z, rad.x, rad.y, 1.0f);
+    glLoadMatrixf(T);
 
-static void RenderSquare(v2 pos, f32 rad, v4 col) {
-    glLoadIdentity();
-    
     glColor4f(col.r, col.g, col.b, col.a);
-    
-    glBegin(GL_QUADS);
-    
-    glVertex2f(pos.x - rad, pos.y - rad);
-    glVertex2f(pos.x + rad, pos.y - rad);
-    glVertex2f(pos.x + rad, pos.y + rad);
-    glVertex2f(pos.x - rad, pos.y + rad);
-    
-    glEnd();
-}
 
-static void RenderArrow(v2 pos, v2 dir) {
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-    
-    glBegin(GL_QUADS);
-    
-    glVertex3f(pos.x + dir.x - dir.y, pos.y - dir.x, 1.0f);
-    glVertex3f(pos.x + dir.x + dir.y, pos.y - dir.x, 1.0f);
-    glVertex3f(pos.x + dir.x + dir.y, pos.y + dir.x, 1.0f);
-    glVertex3f(pos.x + dir.x - dir.y, pos.y + dir.x, 1.0f);
-    
-    glEnd();
-    
+    glCallList(display_list_square);
 }
 
 static void RenderSquareRot(f32 x, f32 y, f32 z, f32 rad, f32 rot, v3 col) {
-    glLoadIdentity();
-    
-    glTranslatef(x, y, z);
-    glScalef(rad, rad, 1.0f);
-    glRotatef(rot * TO_DEG_MUL, 0.0f, 0.0f, 1.0f);
+    f32 T[16];
+    f4x4_TranslateScaleRotateZ(T, x, y, z, rad, rad, 1.0f, rot);
+    glLoadMatrixf(T);
     
     glColor4f(col.r, col.g, col.b, 1.0f);
-    
-    glBegin(GL_QUADS);
-    
-    glVertex2f(-1.0f, -1.0f);
-    glVertex2f(+1.0f, -1.0f);
-    glVertex2f(+1.0f, +1.0f);
-    glVertex2f(-1.0f, +1.0f);
-    
-    glEnd();
+
+    glCallList(display_list_square);
 }
 
 static void RenderBox(v3 pos, v3 scale, v4 col) {
-    glLoadIdentity();
-    
+    f32 T[16];
+    f4x4_TranslateScale(T, pos.x, pos.y, pos.z, scale.x, scale.y, scale.z);
+    glLoadMatrixf(T);
+
     glColor4f(col.r, col.g, col.b, col.a);
-    
-    glBegin(GL_QUADS);
-    
-    glVertex3f(pos.x - scale.x, pos.y - scale.y, pos.z - scale.z);
-    glVertex3f(pos.x + scale.x, pos.y - scale.y, pos.z - scale.z);
-    glVertex3f(pos.x + scale.x, pos.y + scale.y, pos.z - scale.z);
-    glVertex3f(pos.x - scale.x, pos.y + scale.y, pos.z - scale.z);
-    
-    glVertex3f(pos.x - scale.x, pos.y - scale.y, pos.z + scale.z);
-    glVertex3f(pos.x + scale.x, pos.y - scale.y, pos.z + scale.z);
-    glVertex3f(pos.x + scale.x, pos.y + scale.y, pos.z + scale.z);
-    glVertex3f(pos.x - scale.x, pos.y + scale.y, pos.z + scale.z);
-    
-    glVertex3f(pos.x - scale.x, pos.y - scale.y, pos.z - scale.z);
-    glVertex3f(pos.x + scale.x, pos.y - scale.y, pos.z - scale.z);
-    glVertex3f(pos.x + scale.x, pos.y - scale.y, pos.z + scale.z);
-    glVertex3f(pos.x - scale.x, pos.y - scale.y, pos.z + scale.z);
-    
-    glVertex3f(pos.x - scale.x, pos.y + scale.y, pos.z - scale.z);
-    glVertex3f(pos.x + scale.x, pos.y + scale.y, pos.z - scale.z);
-    glVertex3f(pos.x + scale.x, pos.y + scale.y, pos.z + scale.z);
-    glVertex3f(pos.x - scale.x, pos.y + scale.y, pos.z + scale.z);
-    
-    glVertex3f(pos.x - scale.x, pos.y - scale.y, pos.z - scale.z);
-    glVertex3f(pos.x - scale.x, pos.y + scale.y, pos.z - scale.z);
-    glVertex3f(pos.x - scale.x, pos.y + scale.y, pos.z + scale.z);
-    glVertex3f(pos.x - scale.x, pos.y - scale.y, pos.z + scale.z);
-    
-    glVertex3f(pos.x + scale.x, pos.y - scale.y, pos.z - scale.z);
-    glVertex3f(pos.x + scale.x, pos.y + scale.y, pos.z - scale.z);
-    glVertex3f(pos.x + scale.x, pos.y + scale.y, pos.z + scale.z);
-    glVertex3f(pos.x + scale.x, pos.y - scale.y, pos.z + scale.z);
-    
-    glEnd();
+
+    glCallList(display_list_cube);
 }
 
 static Texture TextureCreate(const void* pixels, int width, int height, int is_smooth) {
@@ -151,31 +142,18 @@ static void TextureBind(const Texture* texture) {
 }
 
 static void RenderTexture(Texture texture, v3 pos, f32 rad, f32 rot, v4 color) {
-    glPushMatrix();
-    glLoadIdentity();
-    
-    glTranslatef(pos.x, pos.y, pos.z);
-    glScalef(rad, rad, 1.0f);
-    glRotatef(rot * TO_DEG_MUL, 0.0f, 0.0f, 1.0f);
+    f32 T[16];
+    f4x4_TranslateScaleRotateZ(T, pos.x, pos.y, pos.z, rad, rad, 1.0f, rot);
+    glLoadMatrixf(T);
     
     glBindTexture(GL_TEXTURE_2D, texture.id);
     
     glEnable(GL_TEXTURE_2D);
     
-    glBegin(GL_QUADS);
-    
     glColor4f(color.r, color.g, color.b, color.a);
-    
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -1.0f, 0.0f);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(+1.0f, -1.0f, 0.0f);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(+1.0f, +1.0f, 0.0f);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, +1.0f, 0.0f);
-    
-    glEnd();
+    glCallList(display_list_square);
     
     glDisable(GL_TEXTURE_2D);
-    
-    glPopMatrix();
 };
 
 #define BITMAP_COUNT    (256)

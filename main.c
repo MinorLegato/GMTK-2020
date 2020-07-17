@@ -48,6 +48,7 @@ int main(void) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
+    RenderInit();
     BitmapInit();
     
     health_pack_texture = TextureCreate(health_pack_pixel_data, HEALTH_PACK_FRAME_WIDTH,    HEALTH_PACK_FRAME_HEIGHT,   false);

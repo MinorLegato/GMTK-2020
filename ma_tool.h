@@ -248,6 +248,31 @@ static void f4x4_TranslateScale(f32 *M, f32 px, f32 py, f32 pz, f32 sx, f32 sy, 
     M[15] = 1;
 }
 
+static void f4x4_TranslateScaleRotateZ(f32 *M, f32 px, f32 py, f32 pz, f32 sx, f32 sy, f32 sz, f32 angle) {
+    f32 s = sinf(angle);
+    f32 c = cosf(angle);
+
+    M[0]  = c * sx;
+    M[1]  = s * sx;
+    M[2]  = 0;
+    M[3]  = 0;
+
+    M[4]  = -s * sy;
+    M[5]  =  c * sy;
+    M[6]  =  0;
+    M[7]  =  0;
+
+    M[8]  = 0;
+    M[9]  = 0;
+    M[10] = sz;
+    M[11] = 0;
+
+    M[12] = px;
+    M[13] = py;
+    M[14] = pz;
+    M[15] = 1;
+}
+
 // v2:
 static v2 v2_Neg(v2 a) {
     v2 out = { -a.x, -a.y };
@@ -1231,3 +1256,4 @@ static v3 ToWorldPosition(i32 x, i32 y) {
     
     return (v3) { posX, posY, posZ };
 }
+
