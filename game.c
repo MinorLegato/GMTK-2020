@@ -487,12 +487,13 @@ static void GameInit(GameState* gs) {
 }
 
 static void HelpScreen(Camera* cam) {
-    RenderStringFormat(cam->current.x - 9.0f, cam->current.y + 2.5f, cam->current.z - 8.0f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, " W");
-    RenderStringFormat(cam->current.x - 9.0f, cam->current.y + 2.0f, cam->current.z - 8.0f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, "ASD");
+    RenderStringFormat(cam->current.x - 9.0f, cam->current.y + 2.5f,  cam->current.z - 8.0f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, " W");
+    RenderStringFormat(cam->current.x - 9.0f, cam->current.y + 2.0f,  cam->current.z - 8.0f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, "ASD");
     RenderStringFormat(cam->current.x - 7.0f, cam->current.y + 2.25f, cam->current.z - 8.0f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, "to move");
-    RenderStringFormat(cam->current.x - 9.0f, cam->current.y + 0.0f, cam->current.z - 8.0f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, "SPACE to dash");
-    RenderStringFormat(cam->current.x - 9.0f, cam->current.y - 2.0f, cam->current.z - 8.0f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, "LEFT MOUSE BUTTON to shoot");
-    if(platform.key_press) help_screen_bool = false;
+    RenderStringFormat(cam->current.x - 9.0f, cam->current.y + 0.0f,  cam->current.z - 8.0f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, "SPACE to dash");
+    RenderStringFormat(cam->current.x - 9.0f, cam->current.y - 2.0f,  cam->current.z - 8.0f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, "LEFT MOUSE BUTTON to shoot");
+
+    if (platform.key_press) help_screen_bool = false;
 }
 
 static void GameRun(GameState* gs) {
@@ -512,7 +513,7 @@ static void GameRun(GameState* gs) {
             platform.close = true;
             game_running    = false;
         }
-        
+       
         {
             if (em->array[0].type == ENTITY_PLAYER && (enemy_spawn_cooldown -= dt) <= 0.0f) {
                 enemy_spawn_cooldown = 12.0f;
@@ -525,7 +526,12 @@ static void GameRun(GameState* gs) {
                     while (v2_DistSq(player_pos, enemy_pos) < 12.0f * 12.0f)
                         enemy_pos = GetValidSpawnLocation(&gs->map);
                     
-                    EntityAdd(em, &(Entity) { .type = ENTITY_ENEMY, .pos = enemy_pos, .rad = 0.2f, .life = 2.0f });
+                    EntityAdd(em, &(Entity) {
+                        .type   = ENTITY_ENEMY,
+                        .pos    = enemy_pos,
+                        .rad    = 0.2f,
+                        .life   = 2.0f
+                    });
                 }
             }
         }
@@ -550,20 +556,20 @@ static void GameRun(GameState* gs) {
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
             
-            gluPerspective(80.0f, platform.aspect, 0.1f, cam->current.z + 8.0f);
-            gluLookAt(
-                      cam->current.x, cam->current.y, cam->current.z,
+            gluPerspective(80.0f, platform.aspect, 0.1f, cam->current.z + 1.0f);
+            gluLookAt(cam->current.x, cam->current.y, cam->current.z,
                       cam->current.x, cam->current.y, 0.0f,
                       0.0f, 1.0f, 0.0f);
             
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
         }
-        
+
+        view_rect = Rect2_Create(ToWorldPosition(0, 0).xy, ToWorldPosition(platform.width - 1, platform.height - 1).xy);
+
         MapRender(&gs->map, &gs->camera);
         
-        mouse_world_position = ToWorldPosition(
-                                               iClamp(platform.mouse_position.x, 0, platform.width - 1),
+        mouse_world_position = ToWorldPosition(iClamp(platform.mouse_position.x, 0, platform.width - 1),
                                                iClamp(platform.mouse_position.y, 1, platform.height));
         
         RenderEntities(&gs->entity_manager, &gs->map);
@@ -583,15 +589,13 @@ static void GameRun(GameState* gs) {
             RenderStringFormat(cam->current.x - 0.3f * 0.5f * name_len, cam->current.y + 5.0f, cam->current.z - 8.0f, 0.3f, -0.3f, 1.0f, 1.0f, 1.0f, 1.0f, powerup_name[player_powerup]);
             
             RenderTexture(aim_texture, (v3) { .xy = mouse_world_position.xy }, 0.15f, 0.5f * PI, (v4) { 1.0f, 1.0f, 1.0f, 1.0f });
-            
-            RenderRect(
-                       (v2) { cam->current.x + 0.0f, cam->current.y - 6.0f }, cam->current.z - 8.0f,
+
+            RenderRect((v2) { cam->current.x + 0.0f, cam->current.y - 6.0f }, cam->current.z - 8.0f,
                        (v2) { 4.0f, 0.05f }, (v4) { 1.0f, 0.0f, .0f, 1.0f });
-            
-            RenderRect(
-                       (v2) { cam->current.x + 0.0f, cam->current.y - 6.0f }, cam->current.z - 8.0f,
+
+            RenderRect((v2) { cam->current.x + 0.0f, cam->current.y - 6.0f }, cam->current.z - 8.0f,
                        (v2) { (player_health / PLAYER_HEALTH) * 4.0f, 0.05f }, (v4) { 0.0f, 1.0f, .0f, 1.0f });
-            
+
             if (em->array[0].type != ENTITY_PLAYER) {
                 const char* restart_msg = "press 'R' to try again!";
                 int len = strlen(restart_msg);

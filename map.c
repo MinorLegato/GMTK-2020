@@ -36,14 +36,15 @@ static void RenderTree(int x, int y, v3 light) {
     RenderSquareRot(x + 0.5f, y + 0.5f, 0.8f, 0.3f, 0.25f * PI, v3_Scale(light, 0.7f));
     RenderSquareRot(x + 0.5f, y + 0.5f, 1.0f, 0.2f, 0.0f  * PI, v3_Scale(light, 0.8f));
     RenderSquareRot(x + 0.5f, y + 0.5f, 1.2f, 0.1f, 0.25f * PI, v3_Scale(light, 0.9f));
+
     glLoadIdentity();
 };
 
 static void MapRender(Map* map, const Camera* cam) {
-    int sx = iClampMin(cam->current.x - 18, 0);
-    int sy = iClampMin(cam->current.y - 10,  0);
-    int ex = iClampMax(cam->current.x + 18, MAP_WIDTH);
-    int ey = iClampMax(cam->current.y + 10,  MAP_HEIGHT);
+    int sx = iClampMin(view_rect.min.x, 0);
+    int sy = iClampMin(view_rect.min.y, 0);
+    int ex = iClampMax(view_rect.max.x, MAP_WIDTH);
+    int ey = iClampMax(view_rect.max.y, MAP_HEIGHT);
 
     for (int y = sy; y < ey; ++y) {
         for (int x = sx; x < ex; ++x) {
@@ -88,8 +89,13 @@ static void MapRender(Map* map, const Camera* cam) {
 }
 
 static void MapUpdate(Map* map, ParticleSystem* ps, f32 dt) {
-    for (int y = 0; y < MAP_HEIGHT; ++y) {
-        for (int x = 0; x < MAP_WIDTH; ++x) {
+    int sx = iClampMin(view_rect.min.x - 2, 0);
+    int sy = iClampMin(view_rect.min.y - 2, 0);
+    int ex = iClampMax(view_rect.max.x + 2, MAP_WIDTH);
+    int ey = iClampMax(view_rect.max.y + 2, MAP_HEIGHT);
+
+    for (int y = sy; y < ey; ++y) {
+        for (int x = sx; x < ex; ++x) {
             Tile* tile = &map->tiles[y][x];
 
             tile->light = v3_Lerp(tile->light, (v3) {0}, 1.0f * dt);
@@ -126,8 +132,8 @@ static void MapUpdate(Map* map, ParticleSystem* ps, f32 dt) {
         }
     }
 
-    for (int y = 0; y < BLOOD_MAP_HEIGHT; ++y) {
-        for (int x = 0; x < BLOOD_MAP_WIDTH; ++x) {
+    for (int y = sy * BLOOD_SIZE; y < ey * BLOOD_SIZE; ++y) {
+        for (int x = sx * BLOOD_SIZE; x < ex * BLOOD_SIZE; ++x) {
             v4* blood = &map->blood[y][x];
 
             blood->a = fLerp(blood->a, 0.05f, dt);

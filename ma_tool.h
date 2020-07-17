@@ -304,27 +304,24 @@ static v2 v2_Abs(v2 v) {
 }
 
 static v2 v2_Min(v2 a, v2 b) {
-    v2 out = {
+    return (v2) {
         (a.x < b.x? a.x : b.x),
         (a.y < b.y? a.y : b.y)
     };
-    return out;
 }
 
-static v2 v2Max(v2 a, v2 b) {
-    v2 out = {
+static v2 v2_Max(v2 a, v2 b) {
+    return (v2) {
         (a.x > b.x? a.x : b.x),
         (a.y > b.y? a.y : b.y)
     };
-    return out;
 }
 
 static v2 v2_Lerp(v2 a, v2 b, f32 t) {
-    v2 out = {
+    return (v2) {
         a.x + t * (b.x - a.x),
         a.y + t * (b.y - a.y)
     };
-    return out;
 }
 
 static f32 v2_GetAngle(v2 a, v2 b) {
@@ -976,6 +973,15 @@ static m4 m4_LookAt(v3 eye, v3 center, v3 up) {
     return M;
 }
 
+// =================================================== RECT 2 ================================================ // 
+
+static Rect2 Rect2_Create(v2 a, v2 b) {
+    return (Rect2) {
+        .min = v2_Min(a, b),
+        .max = v2_Max(a, b)
+    };
+}
+
 // ============================================== RANDOM GENERATOR =========================================== //
 // random number generator: xorshf96
 
@@ -1206,7 +1212,7 @@ void PlatformUpdate(void) {
     glfwPollEvents();
 }
 
-static v3 ToWorldPosition(i32 x, int y) {
+static v3 ToWorldPosition(i32 x, i32 y) {
     GLint       viewport[4];
     GLdouble    modelview[16];
     GLdouble    projection[16];

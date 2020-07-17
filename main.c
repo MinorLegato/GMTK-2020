@@ -1,6 +1,7 @@
 #include "ma_tool.h"
 
-static v3 mouse_world_position;
+static v3       mouse_world_position;
+static Rect2    view_rect;
 
 #include "textures.c"
 
@@ -37,7 +38,7 @@ int main(void) {
     PlatformInit("GMTK - 2020", 1600, 900);
     AudioInit();
     
-#if 0 // enable vsync
+#if 1 // enable vsync
     glfwSwapInterval(0);
 #endif
     
